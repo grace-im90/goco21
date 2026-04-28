@@ -841,26 +841,18 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('brand-modal').classList.contains('hidden')) closeBrand();
 });
 (function() {
-  // 하단 좌(bl),우(br),좌(bl),우(br) 순서로 터치하면 관리자 진입
-  const SEQ = ['bl','br','bl','br'];
-  let buf = [], lastTs = 0;
-
-  function hit(side) {
+  // 하단 푸터를 5번 빠르게 탭하면 관리자 진입
+  let taps = 0, lastTs = 0;
+  const footer = document.querySelector('.home-footer');
+  function hit() {
     const now = Date.now();
-    if (now - lastTs > 5000) buf = [];
+    if (now - lastTs > 2000) taps = 0;
     lastTs = now;
-    buf.push(side);
-    if (buf.length > SEQ.length) buf.shift();
-    if (buf.join(',') === SEQ.join(',')) { buf = []; openAdmin(); }
+    taps++;
+    if (taps >= 5) { taps = 0; openAdmin(); }
   }
-
-  const bl = document.querySelector('.corner.bl');
-  const br = document.querySelector('.corner.br');
-
-  bl.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); hit('bl'); }, { passive: false });
-  br.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); hit('br'); }, { passive: false });
-  bl.addEventListener('click', (e) => { e.stopPropagation(); hit('bl'); });
-  br.addEventListener('click', (e) => { e.stopPropagation(); hit('br'); });
+  footer.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); hit(); }, { passive: false });
+  footer.addEventListener('click', (e) => { e.stopPropagation(); hit(); });
 })();
 
 /* ============================================================

@@ -203,8 +203,13 @@
     box-shadow: 0 30px 80px rgba(0,0,0,.6);
   }
   @media (max-width: 600px) {
-    #brand-modal { padding: 0; }
-    .modal-card { width: 100%; height: 100%; border-radius: 0; }
+    #brand-modal { padding: 0; align-items: stretch; }
+    .modal-card {
+      width: 100%;
+      height: 100dvh;
+      height: -webkit-fill-available;
+      border-radius: 0;
+    }
   }
   .modal-head {
     padding: 16px 20px;
@@ -836,29 +841,26 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !document.getElementById('brand-modal').classList.contains('hidden')) closeBrand();
 });
 (function() {
-  // 하단 좌,우,좌,우 순서로 터치하면 관리자 진입
-  const sequence = ['bl','br','bl','br'];
-  let buf = []; let lastTs = 0;
+  // 하단 좌(bl),우(br),좌(bl),우(br) 순서로 터치하면 관리자 진입
+  const SEQ = ['bl','br','bl','br'];
+  let buf = [], lastTs = 0;
 
-  function handleCorner(side) {
+  function hit(side) {
     const now = Date.now();
-    if (now - lastTs > 4000) buf = [];
+    if (now - lastTs > 5000) buf = [];
     lastTs = now;
     buf.push(side);
-    if (buf.length > sequence.length) buf.shift();
-    if (JSON.stringify(buf) === JSON.stringify(sequence)) { buf = []; openAdmin(); }
+    if (buf.length > SEQ.length) buf.shift();
+    if (buf.join(',') === SEQ.join(',')) { buf = []; openAdmin(); }
   }
 
-  ['click','touchstart'].forEach(evt => {
-    document.querySelector('.corner.bl').addEventListener(evt, (e) => {
-      e.stopPropagation();
-      handleCorner('bl');
-    }, { passive: true });
-    document.querySelector('.corner.br').addEventListener(evt, (e) => {
-      e.stopPropagation();
-      handleCorner('br');
-    }, { passive: true });
-  });
+  const bl = document.querySelector('.corner.bl');
+  const br = document.querySelector('.corner.br');
+
+  bl.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); hit('bl'); }, { passive: false });
+  br.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); hit('br'); }, { passive: false });
+  bl.addEventListener('click', (e) => { e.stopPropagation(); hit('bl'); });
+  br.addEventListener('click', (e) => { e.stopPropagation(); hit('br'); });
 })();
 
 /* ============================================================

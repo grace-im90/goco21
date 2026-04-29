@@ -6,8 +6,8 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif; }
-  #stage { position:relative; width:100%; height:100%; overflow:hidden; }
-  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  #stage { position:relative; width:100%; height:100%; overflow:hidden; clip-path:inset(0); }
+  .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
   .slide-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
   .slide-vid { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; background:#000; }
   @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }

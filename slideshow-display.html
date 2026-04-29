@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -29,7 +28,6 @@
   .ov-box.selected .edit-label { display:block; }
   .marquee-outer { width:100%; position:relative; }
   .text-static { display:block; padding:0 28px; white-space:pre-wrap; word-break:break-word; }
-  #yt-frame { position:absolute; inset:0; width:100%; height:100%; border:none; z-index:3; display:none; background:#000; pointer-events:none; }
   #fs-btn { position:absolute; top:14px; right:14px; z-index:100; width:44px; height:44px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); border-radius:10px; color:rgba(255,255,255,0.85); font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .3s ease,background .2s ease; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:auto; }
   #fs-btn:hover { background:rgba(255,255,255,0.22); }
   #stage:hover #fs-btn { opacity:1; }
@@ -55,7 +53,6 @@
     <img class="slide-img" id="img-b" src="" alt="">
     <video class="slide-vid" id="vid-b" muted playsinline></video>
   </div>
-  <iframe id="yt-frame" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
   <div class="ov-box" id="ov-top" data-key="main">
     <span class="edit-label">메인 타이틀</span>
     <div class="ov-box-inner"><div class="marquee-outer" id="main-outer"></div></div>
@@ -131,23 +128,11 @@ let items=[], settings={interval:5,transition:'fade',transitionSpeed:800};
 let curIdx=0, timer=null, busy=false, playing=true, overlay_data={};
 let mainAnims=[], subAnims=[];
 let editMode=false, selectedBox=null;
-let _ytWaiting=false;
 
 const noImage=document.getElementById('no-image');
-const ytFrame=document.getElementById('yt-frame');
 let active={slide:document.getElementById('slide-a'),bg:document.getElementById('bg-a'),img:document.getElementById('img-a'),vid:document.getElementById('vid-a')};
 let inactive={slide:document.getElementById('slide-b'),bg:document.getElementById('bg-b'),img:document.getElementById('img-b'),vid:document.getElementById('vid-b')};
 const layouts={main:{top:1.2,left:1.5,width:97,height:0},sub:{top:78,left:1.5,width:97,height:0},desc:{top:86,left:1.5,width:97,height:0}};
-
-// ── YouTube 종료 감지 ─────────────────────────────
-window.addEventListener('message', (e) => {
-  try {
-    const d = typeof e.data==='string' ? JSON.parse(e.data) : e.data;
-    if (d && d.event==='onStateChange' && d.info===0) {
-      if (_ytWaiting && playing) { _ytWaiting=false; transition(curIdx+1); }
-    }
-  } catch(err) {}
-});
 
 // ── Firebase 리스너 ────────────────────────────────
 db.ref('slideshow/state').on('value', snap => {
@@ -258,28 +243,11 @@ function toggleFullscreen() {
 document.addEventListener('keydown',e=>{if(e.key==='f'||e.key==='F')toggleFullscreen();});
 
 // ── 슬라이드 ──────────────────────────────────────
-function isVideoItem(item){return item&&item.isVideo&&!item.isYoutube;}
+function isVideoItem(item){return item&&item.isVideo;}
 function clampIdx(idx){if(!items.length)return 0;return((idx%items.length)+items.length)%items.length;}
 function raf2(fn){requestAnimationFrame(()=>requestAnimationFrame(fn));}
 
 function loadLayer(layer,item) {
-  if (item&&item.isYoutube) {
-    layer.img.style.display='none'; layer.img.src='';
-    layer.vid.pause(); layer.vid.src=''; layer.vid.style.display='none';
-    layer.bg.style.backgroundImage='none';
-    document.getElementById('slide-a').style.display='none';
-    document.getElementById('slide-b').style.display='none';
-    ytFrame.src='';
-    setTimeout(()=>{
-      const ytId = item.ytId || item.url.match(/embed\/([^?]+)/)?.[1];
-      const url = `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&rel=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(location.origin)}&modestbranding=1`;
-      ytFrame.src = url;
-      ytFrame.style.display='block';
-    },50);
-  } else {
-    ytFrame.style.display='none'; ytFrame.src='';
-    document.getElementById('slide-a').style.display='';
-    document.getElementById('slide-b').style.display='';
     if(isVideoItem(item)){
       layer.img.style.display='none'; layer.img.src='';
       layer.bg.style.backgroundImage='none';
@@ -288,16 +256,13 @@ function loadLayer(layer,item) {
       layer.vid.pause(); layer.vid.src=''; layer.vid.style.display='none';
       layer.img.style.display='block'; layer.img.src=item.url;
       layer.bg.style.backgroundImage=`url("${item.url}")`;
-    }
   }
 }
 
 function scheduleNext() {
   stopTimer();
   const item=items[curIdx]; if(!item||!playing)return;
-  if(item.isYoutube) {
-    _ytWaiting=true;
-  } else if(isVideoItem(item)) {
+  if(isVideoItem(item)) {
     const vid=active.vid; vid.currentTime=0; vid.onended=null;
     vid.play().catch(()=>{});
     vid.onended=()=>{if(playing)transition(curIdx+1);};
@@ -305,7 +270,7 @@ function scheduleNext() {
     if(items.length>1) timer=setTimeout(()=>{if(playing)transition(curIdx+1);},settings.interval*1000);
   }
 }
-function stopTimer(){clearTimeout(timer);timer=null;active.vid.onended=null;inactive.vid.onended=null;_ytWaiting=false;}
+function stopTimer(){clearTimeout(timer);timer=null;active.vid.onended=null;inactive.vid.onended=null;}
 function showImmediate(idx) {
   curIdx=clampIdx(idx); loadLayer(active,items[curIdx]);
   active.slide.style.opacity='1'; active.slide.style.zIndex='2'; active.slide.style.transform='';
@@ -313,7 +278,7 @@ function showImmediate(idx) {
 }
 function transition(nextIdx) {
   if(busy||!items.length)return; busy=true; curIdx=clampIdx(nextIdx);
-  active.vid.pause(); active.vid.onended=null; _ytWaiting=false;
+  active.vid.pause(); active.vid.onended=null;
   loadLayer(inactive,items[curIdx]);
   inactive.slide.style.zIndex='2'; active.slide.style.zIndex='1';
   const t=settings.transition||'fade',spd=settings.transitionSpeed||800;

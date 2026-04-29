@@ -102,6 +102,30 @@
   .opacity-val{font-size:11px;color:var(--accent);font-weight:700;min-width:32px;text-align:right;}
   ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
   #file-input{display:none;}
+
+  /* ── 모바일 반응형 ── */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+    .sidebar { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid var(--border); overflow-y: visible; }
+    .sidebar-logo { padding: 16px; }
+    .sidebar-logo h1 { font-size: 15px; }
+    .sidebar-section { padding: 12px 14px; }
+    .main { flex: unset; min-height: 60vh; }
+    .main-header { padding: 14px 16px 10px; }
+    .upload-zone { margin: 10px 16px 0; padding: 18px 14px; }
+    .media-grid-wrap { padding: 10px 16px 20px; }
+    .media-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 7px; }
+    .btn { min-height: 44px; font-size: 14px; }
+    .btn-sm { min-height: 40px; }
+    input[type=text], textarea, select { min-height: 44px; font-size: 16px; }
+    input[type=number] { min-height: 40px; font-size: 15px; }
+    .size-btn { width: 36px; height: 36px; font-size: 18px; }
+    .tab-btn { min-height: 40px; font-size: 13px; }
+    .ov-sec { padding: 12px; }
+    .display-btns { gap: 8px; }
+    .display-btns .btn { flex: 1; }
+    .sidebar-section:last-child { padding-bottom: 20px; }
+  }
 </style>
 </head>
 <body>

@@ -48,7 +48,6 @@
       radial-gradient(1000px 500px at 110% 110%, rgba(244,114,182,.18), transparent 60%),
       linear-gradient(180deg, #0b0d12 0%, #11131a 100%);
     padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
     padding-left: env(safe-area-inset-left, 0px);
     padding-right: env(safe-area-inset-right, 0px);
     box-sizing: border-box;
@@ -178,7 +177,8 @@
   .home-footer {
     flex-shrink: 0;
     text-align: center;
-    padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+    padding: 10px 20px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
     background: rgba(0,0,0,.25);
     border-top: 1px solid rgba(255,255,255,.05);
     font-size: clamp(12px, 1.6vw, 14px);
@@ -298,8 +298,8 @@
     background: #0b0d12;
     display: flex; flex-direction: column;
     user-select: text; -webkit-user-select: text;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .admin-header {
     padding: 14px 20px;
@@ -429,59 +429,48 @@
   /* ==========================
      블로그 에디터
   ========================== */
-  .rte-wrap { border: 1px solid rgba(255,255,255,.12); border-radius: 12px; overflow: hidden; background: #0b0d12; }
+  .rte-wrap {
+    border: 1px solid rgba(255,255,255,.12); border-radius: 12px;
+    overflow: hidden; background: #0b0d12;
+    display: flex; flex-direction: column;
+  }
   .rte-toolbar {
-    display: flex; flex-wrap: wrap; gap: 4px;
-    padding: 8px; background: #0f1117;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 3px;
+    padding: 6px 8px; background: #0f1117;
     border-bottom: 1px solid rgba(255,255,255,.08);
-    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; flex-shrink: 0;
   }
-  .rte-toolbar button, .rte-toolbar select {
-    background: #1f2130; color: #e7e9ee;
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 6px; font-size: 13px;
-    padding: 6px 10px; min-height: 32px;
-    font-family: inherit;
+  .rte-toolbar::-webkit-scrollbar { display: none; }
+  .rte-toolbar button, .rte-toolbar select, .rte-toolbar .file-btn {
+    background: transparent; color: #e7e9ee;
+    border: none; border-radius: 8px; font-size: 15px;
+    padding: 6px 9px; min-height: 38px; min-width: 38px;
+    font-family: inherit; flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    touch-action: manipulation; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
   }
-  .rte-toolbar button:hover { background: #2a2d3e; }
-  .rte-toolbar button:active { background: #3a3e55; }
-  .rte-toolbar .sep { width: 1px; background: rgba(255,255,255,.08); margin: 2px 4px; flex-shrink: 0; }
+  .rte-toolbar select {
+    min-width: 70px; font-size: 13px; padding: 4px 6px;
+    background: #1f2130; border: 1px solid rgba(255,255,255,.1);
+  }
+  .rte-toolbar button:active, .rte-toolbar .file-btn:active { background: rgba(255,255,255,.1); }
+  .rte-toolbar .sep { width: 1px; min-height: 24px; background: rgba(255,255,255,.12); margin: 0 2px; flex-shrink: 0; }
+  .rte-upload-btn { font-size: 20px !important; }
   .rte-toolbar input[type="color"] {
     width: 32px; height: 32px; padding: 2px; border-radius: 6px;
-    background: #1f2130; border: 1px solid rgba(255,255,255,.08); cursor: pointer;
-  }
-  .rte-toolbar .grp {
-    display: inline-flex; align-items: center; gap: 2px;
-    padding: 2px 4px; border: 1px solid rgba(255,255,255,.08);
-    border-radius: 8px; background: rgba(99,102,241,.06);
-  }
-
-  /* 모바일 툴바 버튼 크기 확대 */
-  @media (max-width: 768px) {
-    .rte-toolbar button, .rte-toolbar select, .rte-toolbar .file-btn {
-      min-height: 44px !important;
-      padding: 8px 12px !important;
-      font-size: 15px !important;
-    }
-    .rte-toolbar input[type="color"] {
-      width: 44px !important; height: 44px !important;
-    }
-    .rte-toolbar .grp button {
-      min-height: 40px !important;
-    }
+    background: #1f2130; border: 1px solid rgba(255,255,255,.1);
+    cursor: pointer; flex-shrink: 0;
   }
 
   .rte-editor {
-    min-height: 240px; max-height: 50vh; overflow-y: auto;
-    padding: 16px 18px;
+    flex: 1; min-height: 200px; max-height: 45vh; overflow-y: auto;
+    padding: 14px 16px;
     color: #e7e9ee;
-    font-size: 16px; line-height: 1.7;
+    font-size: 16px; line-height: 1.8;
     outline: none;
     user-select: text; -webkit-user-select: text;
-    /* iOS 키보드 올라올 때 스크롤 허용 */
     -webkit-overflow-scrolling: touch;
   }
   .rte-editor:empty::before {
@@ -976,67 +965,63 @@ function renderEditor() {
       <div class="row">
         <label>본문</label>
         <div class="rte-wrap">
+          <!-- 한 줄 슬라이딩 툴바 -->
           <div class="rte-toolbar" id="rte-toolbar">
-            <select id="rte-block" title="문단 형식">
-              <option value="p">본문</option>
-              <option value="h1">제목 1</option>
-              <option value="h2">제목 2</option>
-              <option value="h3">제목 3</option>
-              <option value="blockquote">인용</option>
-            </select>
-            <select id="rte-font" title="글꼴">
-              <option value="">기본 글꼴</option>
-              <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif">Sans</option>
-              <option value="'Times New Roman', 'Nanum Myeongjo', serif">Serif</option>
-              <option value="'Courier New', monospace">Mono</option>
-              <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
-              <option value="'Nanum Myeongjo', serif">나눔명조</option>
-            </select>
-            <select id="rte-size" title="글자 크기">
-              <option value="2">아주 작게</option>
-              <option value="3" selected>보통</option>
-              <option value="4">크게</option>
-              <option value="5">더 크게</option>
-              <option value="6">아주 크게</option>
-              <option value="7">최대</option>
-            </select>
-            <div class="sep"></div>
             <button type="button" data-cmd="bold" title="굵게"><b>B</b></button>
             <button type="button" data-cmd="italic" title="기울임"><i>I</i></button>
             <button type="button" data-cmd="underline" title="밑줄"><u>U</u></button>
             <button type="button" data-cmd="strikeThrough" title="취소선"><s>S</s></button>
             <div class="sep"></div>
+            <select id="rte-block" title="문단 형식">
+              <option value="p">본문</option>
+              <option value="h1">제목1</option>
+              <option value="h2">제목2</option>
+              <option value="h3">제목3</option>
+              <option value="blockquote">인용</option>
+            </select>
+            <select id="rte-font" title="글꼴">
+              <option value="">기본</option>
+              <option value="-apple-system, BlinkMacSystemFont, sans-serif">Sans</option>
+              <option value="'Times New Roman', serif">Serif</option>
+              <option value="'Courier New', monospace">Mono</option>
+              <option value="'Nanum Gothic', sans-serif">나눔고딕</option>
+              <option value="'Nanum Myeongjo', serif">나눔명조</option>
+            </select>
+            <select id="rte-size" title="글자 크기">
+              <option value="2">작게</option>
+              <option value="3" selected>보통</option>
+              <option value="4">크게</option>
+              <option value="5">더 크게</option>
+              <option value="6">아주 크게</option>
+            </select>
+            <div class="sep"></div>
             <input type="color" id="rte-fg" title="글자색" value="#e7e9ee">
             <input type="color" id="rte-bg" title="형광펜" value="#6366f1">
             <div class="sep"></div>
-            <button type="button" data-cmd="justifyLeft" title="문단 왼쪽 정렬">⬅</button>
-            <button type="button" data-cmd="justifyCenter" title="문단 가운데 정렬">↔</button>
-            <button type="button" data-cmd="justifyRight" title="문단 오른쪽 정렬">➡</button>
+            <button type="button" data-cmd="justifyLeft" title="왼쪽">⬅</button>
+            <button type="button" data-cmd="justifyCenter" title="가운데">↔</button>
+            <button type="button" data-cmd="justifyRight" title="오른쪽">➡</button>
             <div class="sep"></div>
-            <button type="button" data-cmd="insertUnorderedList" title="글머리 기호">•</button>
-            <button type="button" data-cmd="insertOrderedList" title="번호 매기기">1.</button>
+            <button type="button" data-cmd="insertUnorderedList" title="목록">•</button>
+            <button type="button" data-cmd="insertOrderedList" title="번호">1.</button>
+            <div class="sep"></div>
+            <label class="file-btn rte-upload-btn" title="이미지">📷
+              <input type="file" accept="image/*" style="display:none" id="rte-img" />
+            </label>
+            <label class="file-btn rte-upload-btn" title="영상">🎬
+              <input type="file" accept="video/*" style="display:none" id="rte-vid" />
+            </label>
+            <div class="sep"></div>
+            <button type="button" id="img-left" title="미디어 왼쪽">◧</button>
+            <button type="button" id="img-center" title="미디어 가운데">◫</button>
+            <button type="button" id="img-right" title="미디어 오른쪽">◨</button>
             <div class="sep"></div>
             <button type="button" id="rte-link" title="링크">🔗</button>
             <button type="button" id="rte-hr" title="구분선">―</button>
-            <div class="sep"></div>
-            <label class="file-btn" style="padding:6px 10px;min-height:32px;line-height:20px;">이미지 삽입
-              <input type="file" accept="image/*" style="display:none" id="rte-img" />
-            </label>
-            <label class="file-btn" style="padding:6px 10px;min-height:32px;line-height:20px;">영상 삽입
-              <input type="file" accept="video/*" style="display:none" id="rte-vid" />
-            </label>
-            <span id="rte-uploading"></span>
-            <div class="sep"></div>
-            <!-- 미디어 정렬 그룹 — 이미지를 먼저 클릭한 뒤 사용 -->
-            <div class="grp" title="먼저 이미지/영상을 클릭한 뒤 정렬">
-              <button type="button" id="img-left"   title="미디어 왼쪽 정렬">🖼◧</button>
-              <button type="button" id="img-center" title="미디어 가운데 정렬">🖼◫</button>
-              <button type="button" id="img-right"  title="미디어 오른쪽 정렬">🖼◨</button>
-            </div>
-            <div class="sep"></div>
-            <button type="button" data-cmd="undo" title="실행 취소">↶</button>
-            <button type="button" data-cmd="redo" title="다시 실행">↷</button>
+            <button type="button" data-cmd="undo" title="취소">↶</button>
+            <button type="button" data-cmd="redo" title="다시">↷</button>
             <button type="button" data-cmd="removeFormat" title="서식 지우기">⌫</button>
+            <span id="rte-uploading" style="font-size:12px;opacity:.7;white-space:nowrap;align-self:center;padding:0 4px;"></span>
           </div>
           <div class="rte-editor" id="rte-editor" contenteditable="true">${b.contentHtml || ''}</div>
         </div>

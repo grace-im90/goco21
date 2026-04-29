@@ -328,7 +328,98 @@
     background: #6366f1; border: none; border-radius: 10px; color: #fff; font-weight: 600;
   }
 
-  .admin-body { flex: 1; overflow-y: auto; padding: 20px; }
+  .admin-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+  /* 보드 그리드 */
+  .admin-board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .admin-board-card {
+    position: relative;
+    background: #15171f;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    overflow: hidden;
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform .15s;
+  }
+  .admin-board-card:active { transform: scale(.97); }
+  .admin-board-card .card-thumb {
+    width: 100%; height: 65%;
+    object-fit: cover; display: block;
+    background: #1f2130;
+  }
+  .admin-board-card .card-thumb-placeholder {
+    width: 100%; height: 65%;
+    background: #1f2130;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 700; color: rgba(255,255,255,.2);
+  }
+  .admin-board-card .card-info {
+    padding: 8px 10px;
+  }
+  .admin-board-card .card-name {
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .admin-board-card .card-cat {
+    font-size: 11px; opacity: .5; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .admin-board-card.move-mode {
+    border: 2px dashed #6366f1;
+    animation: wiggle .3s infinite alternate;
+  }
+  @keyframes wiggle {
+    from { transform: rotate(-1deg); }
+    to   { transform: rotate(1deg); }
+  }
+
+  /* 컨텍스트 메뉴 */
+  .context-overlay {
+    position: fixed; inset: 0; z-index: 299;
+    background: rgba(0,0,0,.5);
+  }
+  .context-card {
+    position: fixed; left: 50%; bottom: env(safe-area-inset-bottom, 20px);
+    transform: translateX(-50%);
+    width: min(320px, 92vw);
+    background: #1e2030; border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.1);
+    overflow: hidden; z-index: 300;
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp { from { transform: translateX(-50%) translateY(30px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+  .context-brand-name {
+    padding: 14px 20px 10px;
+    font-size: 13px; font-weight: 700; opacity: .5;
+    text-transform: uppercase; letter-spacing: .08em;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .context-card button {
+    display: block; width: 100%;
+    padding: 16px 20px; text-align: left;
+    background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,.04);
+    color: #e7e9ee; font-size: 16px; font-family: inherit;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .context-card button:active { background: rgba(255,255,255,.06); }
+  .context-card button.danger { color: #f87171; }
+  .context-card button.cancel { color: #a5b4fc; font-weight: 600; border-bottom: none; }
+
+  /* 이동 모드 드래그 힌트 */
+  .move-hint {
+    text-align: center; padding: 10px;
+    font-size: 13px; opacity: .5;
+    display: none;
+  }
+  .move-hint.visible { display: block; }
   .admin-grid {
     display: grid; grid-template-columns: 320px 1fr; gap: 20px;
   }
@@ -617,28 +708,49 @@
   </div>
 </div>
 
-<!-- ================= 관리자 패널 ================= -->
+<!-- ================= 관리자 패널 : 보드 목록 ================= -->
 <div id="admin-panel" class="hidden">
   <div class="admin-header">
     <h2>ADMIN · 콘텐츠 관리</h2>
     <div class="actions">
-      <button class="btn btn-ghost" onclick="exportData()">📤 백업 내보내기</button>
-      <label class="btn btn-ghost" style="cursor:pointer;">📥 백업 가져오기
+      <button class="btn btn-ghost" onclick="exportData()">📤 백업</button>
+      <label class="btn btn-ghost" style="cursor:pointer;">📥 가져오기
         <input type="file" accept=".json,application/json" style="display:none" onchange="importData(event)" />
       </label>
       <button class="btn btn-ghost" onclick="showSettings()">⚙ 설정</button>
-      <button class="btn btn-ghost" onclick="closeAdmin()">키오스크로</button>
+      <button class="btn btn-ghost" onclick="closeAdmin()">종료</button>
     </div>
   </div>
   <div class="admin-body">
-    <div class="admin-grid">
-      <div class="brand-list">
-        <h4>브랜드 (드래그로 순서 변경)</h4>
-        <ul id="admin-brand-list"></ul>
-        <button class="add-btn" onclick="addBrand()">+ 새 브랜드 추가</button>
-      </div>
-      <div id="editor-wrap"></div>
+    <div class="admin-board-grid" id="admin-board-grid"></div>
+    <button class="add-btn" onclick="addBrand()">+ 새 보드 추가</button>
+  </div>
+</div>
+
+<!-- ================= 관리자 패널 : 에디터 ================= -->
+<div id="admin-editor-view" class="hidden">
+  <div class="admin-header">
+    <h2 id="editor-view-title">보드 편집</h2>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="previewBrand()">👁 미리보기</button>
+      <button class="btn btn-primary" onclick="saveBrand()">💾 저장</button>
+      <button class="btn btn-ghost" onclick="backToAdminList()">← 목록</button>
     </div>
+  </div>
+  <div class="admin-body">
+    <div id="editor-wrap"></div>
+  </div>
+</div>
+
+<!-- 길게 누르기 컨텍스트 메뉴 -->
+<div id="board-context-menu" class="hidden">
+  <div class="context-overlay" onclick="closeContextMenu()"></div>
+  <div class="context-card">
+    <div class="context-brand-name" id="context-brand-name"></div>
+    <button onclick="contextEdit()">✏️ 편집</button>
+    <button onclick="contextMove()">↕️ 이동</button>
+    <button onclick="contextDelete()" class="danger">🗑 삭제</button>
+    <button onclick="closeContextMenu()" class="cancel">취소</button>
   </div>
 </div>
 
@@ -853,48 +965,125 @@ document.addEventListener('keydown', e => {
 /* ============================================================
    관리자 패널
 ============================================================ */
+let contextTargetId = null;
+let moveMode = false;
+let movingId = null;
+
 function showAdminPanel() {
   document.getElementById('admin-panel').classList.remove('hidden');
-  renderAdminList();
-  if (brands.length && !currentEditingId) currentEditingId = brands[0].id;
+  document.getElementById('admin-editor-view').classList.add('hidden');
+  renderAdminBoardGrid();
+}
+
+function backToAdminList() {
+  commitEditorToModel();
+  document.getElementById('admin-editor-view').classList.add('hidden');
+  document.getElementById('admin-panel').classList.remove('hidden');
+  renderAdminBoardGrid();
+}
+
+function renderAdminList() { renderAdminBoardGrid(); }
+
+function renderAdminBoardGrid() {
+  const grid = document.getElementById('admin-board-grid');
+  grid.innerHTML = '';
+  brands.forEach((b, idx) => {
+    const card = document.createElement('div');
+    card.className = 'admin-board-card' + (moveMode ? ' move-mode' : '');
+    card.dataset.id = b.id;
+    const initial = (b.name || '?').charAt(0).toUpperCase();
+    const thumbHtml = b.thumbnail
+      ? `<img class="card-thumb" src="${b.thumbnail}">`
+      : `<div class="card-thumb-placeholder">${esc(initial)}</div>`;
+    card.innerHTML = `
+      ${thumbHtml}
+      <div class="card-info">
+        <div class="card-name">${esc(b.name || '(이름 없음)')}</div>
+        <div class="card-cat">${esc(b.category || '')}</div>
+      </div>`;
+
+    // 탭 — 미리보기
+    card.onclick = () => {
+      if (moveMode) return;
+      openBrand(b.id);
+    };
+
+    // 길게 누르기 — 컨텍스트 메뉴
+    let pressTimer = null;
+    card.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(() => { pressTimer = null; openContextMenu(b.id); }, 500);
+    }, { passive: true });
+    card.addEventListener('touchend', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+    card.addEventListener('touchmove', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
+
+    // 이동 모드 드래그
+    if (moveMode) {
+      card.draggable = true;
+      card.addEventListener('dragstart', e => { movingId = b.id; card.style.opacity = '.4'; e.dataTransfer.setData('text/plain', b.id); });
+      card.addEventListener('dragend', () => { card.style.opacity = '1'; });
+      card.addEventListener('dragover', e => e.preventDefault());
+      card.addEventListener('drop', async e => {
+        e.preventDefault();
+        const fromId = e.dataTransfer.getData('text/plain');
+        if (fromId === b.id) return;
+        const from = brands.findIndex(x => x.id === fromId);
+        const to = brands.findIndex(x => x.id === b.id);
+        if (from < 0 || to < 0) return;
+        const [moved] = brands.splice(from, 1);
+        brands.splice(to, 0, moved);
+        await DB.save(brands);
+        renderAdminBoardGrid();
+        toast('순서를 변경했습니다');
+      });
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+function openContextMenu(id) {
+  contextTargetId = id;
+  const b = brands.find(x => x.id === id);
+  document.getElementById('context-brand-name').textContent = b?.name || '';
+  document.getElementById('board-context-menu').classList.remove('hidden');
+}
+function closeContextMenu() {
+  document.getElementById('board-context-menu').classList.add('hidden');
+  contextTargetId = null;
+}
+function contextEdit() {
+  closeContextMenu();
+  currentEditingId = contextTargetId;
+  document.getElementById('admin-panel').classList.add('hidden');
+  document.getElementById('admin-editor-view').classList.remove('hidden');
+  const b = brands.find(x => x.id === currentEditingId);
+  document.getElementById('editor-view-title').textContent = b?.name || '보드 편집';
   renderEditor();
 }
-function renderAdminList() {
-  const ul = document.getElementById('admin-brand-list');
-  ul.innerHTML = '';
-  brands.forEach(b => {
-    const li = document.createElement('li');
-    li.draggable = true;
-    li.dataset.id = b.id;
-    if (b.id === currentEditingId) li.classList.add('selected');
-    const initial = (b.name || '?').charAt(0).toUpperCase();
-    li.innerHTML = `
-      <div class="logo-xs">${b.logo ? `<img src="${b.logo}">` : esc(initial)}</div>
-      <div class="nm">${esc(b.name || '(이름 없음)')}</div>
-      <div class="hdl">≡</div>`;
-    li.onclick = () => {
-      commitEditorToModel();
-      currentEditingId = b.id;
-      renderAdminList(); renderEditor();
-    };
-    li.addEventListener('dragstart', e => { li.classList.add('dragging'); e.dataTransfer.setData('text/plain', b.id); });
-    li.addEventListener('dragend',   () => li.classList.remove('dragging'));
-    li.addEventListener('dragover',  e => e.preventDefault());
-    li.addEventListener('drop',      async e => {
-      e.preventDefault();
-      const draggedId = e.dataTransfer.getData('text/plain');
-      if (draggedId === b.id) return;
-      const from = brands.findIndex(x => x.id === draggedId);
-      const to   = brands.findIndex(x => x.id === b.id);
-      if (from < 0 || to < 0) return;
-      const [moved] = brands.splice(from, 1);
-      brands.splice(to, 0, moved);
-      await DB.save(brands);
-      renderAdminList();
-      toast('순서를 변경했습니다');
-    });
-    ul.appendChild(li);
-  });
+function contextMove() {
+  closeContextMenu();
+  moveMode = true;
+  renderAdminBoardGrid();
+  toast('보드를 드래그해서 순서를 바꾸세요. 완료 후 빈 곳을 탭하세요.');
+  // 빈 곳 탭하면 이동 모드 종료
+  setTimeout(() => {
+    document.getElementById('admin-board-grid').addEventListener('click', exitMoveMode, { once: true });
+  }, 300);
+}
+function exitMoveMode() {
+  moveMode = false;
+  renderAdminBoardGrid();
+}
+async function contextDelete() {
+  closeContextMenu();
+  const b = brands.find(x => x.id === contextTargetId);
+  if (!b) return;
+  if (!confirm(`"${b.name}" 보드를 삭제할까요?`)) return;
+  brands = brands.filter(x => x.id !== contextTargetId);
+  if (currentEditingId === contextTargetId) currentEditingId = brands[0]?.id || null;
+  await DB.save(brands);
+  renderAdminBoardGrid();
+  toast('삭제했습니다');
 }
 async function addBrand() {
   commitEditorToModel();
@@ -902,18 +1091,21 @@ async function addBrand() {
   brands.push(nb);
   currentEditingId = nb.id;
   await DB.save(brands);
-  renderAdminList(); renderEditor();
-  toast('브랜드를 추가했습니다');
+  document.getElementById('admin-panel').classList.add('hidden');
+  document.getElementById('admin-editor-view').classList.remove('hidden');
+  document.getElementById('editor-view-title').textContent = '새 보드';
+  renderEditor();
+  toast('새 보드를 추가했습니다');
 }
 async function deleteBrand() {
   if (!currentEditingId) return;
   const b = brands.find(x => x.id === currentEditingId);
   if (!b) return;
-  if (!confirm(`"${b.name}" 브랜드를 삭제할까요?`)) return;
+  if (!confirm(`"${b.name}" 보드를 삭제할까요?`)) return;
   brands = brands.filter(x => x.id !== currentEditingId);
   currentEditingId = brands[0]?.id || null;
   await DB.save(brands);
-  renderAdminList(); renderEditor();
+  backToAdminList();
   toast('삭제했습니다');
 }
 
@@ -1233,9 +1425,8 @@ async function saveBrand() {
   const ok = await DB.save(brands);
   if (ok) {
     renderHome();
-    renderAdminList();
-    toast('저장되었습니다 — 키오스크에 자동 반영됩니다');
-    setTimeout(() => closeAdmin(), 800);
+    toast('저장되었습니다 ✓');
+    setTimeout(() => backToAdminList(), 600);
   } else {
     toast('저장 실패: 저장 공간이 부족합니다');
   }
@@ -1243,8 +1434,16 @@ async function saveBrand() {
 async function previewBrand() {
   commitEditorToModel();
   await DB.save(brands);
-  closeAdmin();
-  setTimeout(() => openBrand(currentEditingId), 200);
+  // 미리보기 팝업 열기 — 닫으면 에디터로 복귀
+  document.getElementById('admin-editor-view').classList.add('hidden');
+  openBrand(currentEditingId);
+  // 모달 닫힐 때 에디터로 복귀
+  const origClose = window.closeBrand;
+  window.closeBrand = function() {
+    origClose();
+    document.getElementById('admin-editor-view').classList.remove('hidden');
+    window.closeBrand = origClose;
+  };
 }
 
 /* ============================================================
@@ -1498,7 +1697,7 @@ document.addEventListener('touchend', e => {
     brands = list;
     renderHome();
     const adminPanel = document.getElementById('admin-panel');
-    if (adminPanel && !adminPanel.classList.contains('hidden')) renderAdminList();
+    if (adminPanel && !adminPanel.classList.contains('hidden')) renderAdminBoardGrid();
   });
 })();
 </script>

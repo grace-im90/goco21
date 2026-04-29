@@ -1761,12 +1761,18 @@ setInterval(updateClock, 15000);
   function resetIdle() {
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => {
+      // 관리자 모드면 타이머 무시
+      const adminPanel = document.getElementById('admin-panel');
+      const adminEditor = document.getElementById('admin-editor-view');
+      const adminLogin = document.getElementById('admin-login');
+      if (!adminPanel.classList.contains('hidden') ||
+          !adminEditor.classList.contains('hidden') ||
+          !adminLogin.classList.contains('hidden')) return;
       // 팝업 열려있으면 닫기
       const modal = document.getElementById('brand-modal');
       if (modal && !modal.classList.contains('hidden')) {
         closeBrand();
       }
-      // 관리자 모드면 복귀 안 함 (관리자는 작업 중일 수 있으므로)
     }, IDLE_MS);
   }
 

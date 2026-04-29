@@ -1584,19 +1584,13 @@ function clearThumb() {
 
 async function saveBrand() {
   commitEditorToModel();
-  // 용량 체크 — Firestore 문서 1MB 제한
-  const dataSize = new Blob([JSON.stringify(brands)]).size;
-  if (dataSize > 900000) {
-    toast('⚠️ 저장 용량 초과! 이미지를 Cloudinary URL로 교체하거나 불필요한 데이터를 삭제하세요.');
-    return;
-  }
   const ok = await DB.save(brands);
   if (ok) {
     renderHome();
     toast('저장되었습니다 ✓');
     setTimeout(() => backToAdminList(), 600);
   } else {
-    toast('저장 실패 — 이미지 크기를 줄이거나 Cloudinary URL을 사용하세요');
+    toast('저장 실패');
   }
 }
 async function previewBrand() {

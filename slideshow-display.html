@@ -13,19 +13,21 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
 /* 슬라이드 레이어 - GPU 가속 */
 .slide {
   position: absolute; inset: 0;
+  z-index: 1;
   will-change: opacity, transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-/* 블러 배경 */
-.slide-bg {
+/* 독립 블러 배경 레이어 (최하단, 전환과 무관) */
+#bg-layer {
   position: absolute; inset: -60px;
+  z-index: 0;
   background-size: cover;
   background-position: center;
   filter: blur(32px) brightness(.5) saturate(1.2);
   transform: scale(1.15);
-  will-change: opacity;
+  transition: background-image 0.1s;
 }
 
 /* 메인 이미지/영상 */
@@ -45,7 +47,7 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
 
 /* 오버레이 박스 - 슬라이드와 분리된 레이어 */
 .ov-box {
-  position: absolute; z-index: 50;
+  position: absolute; z-index: 100;
   border-radius: 16px; display: none; overflow: hidden;
   pointer-events: none;
   border: 1px solid rgba(255,255,255,0.10);
@@ -75,7 +77,7 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
 .text-static { display: block; padding: 0 28px; white-space: pre-wrap; word-break: break-word; }
 
 #fs-btn {
-  position: absolute; top: 14px; right: 14px; z-index: 100;
+  position: absolute; top: 14px; right: 14px; z-index: 200;
   width: 44px; height: 44px;
   background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
   border-radius: 10px; color: rgba(255,255,255,0.85); font-size: 20px;
@@ -88,7 +90,7 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
 #no-image {
   position: absolute; inset: 0; display: none;
   flex-direction: column; align-items: center; justify-content: center;
-  color: #555; z-index: 10;
+  color: #555; z-index: 150;
 }
 #no-image.show { display: flex; }
 #no-image .icon { font-size: 80px; margin-bottom: 20px; }
@@ -97,15 +99,16 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
 </head>
 <body>
 <div id="stage">
+  <!-- 배경 블러 레이어 (최하단, 독립) -->
+  <div id="bg-layer"></div>
+
   <!-- 레이어 A (앞) -->
   <div class="slide" id="slide-a">
-    <div class="slide-bg" id="bg-a"></div>
     <img class="slide-img" id="img-a" src="" alt="">
     <video class="slide-vid" id="vid-a" muted playsinline></video>
   </div>
   <!-- 레이어 B (뒤) -->
   <div class="slide" id="slide-b">
-    <div class="slide-bg" id="bg-b"></div>
     <img class="slide-img" id="img-b" src="" alt="">
     <video class="slide-vid" id="vid-b" muted playsinline></video>
   </div>
@@ -177,15 +180,14 @@ let editMode = false, selectedBox = null;
 const noImage = document.getElementById('no-image');
 
 // 두 슬라이드 레이어
+const bgLayer = document.getElementById('bg-layer');
 const layerA = {
   slide: document.getElementById('slide-a'),
-  bg: document.getElementById('bg-a'),
   img: document.getElementById('img-a'),
   vid: document.getElementById('vid-a'),
 };
 const layerB = {
   slide: document.getElementById('slide-b'),
-  bg: document.getElementById('bg-b'),
   img: document.getElementById('img-b'),
   vid: document.getElementById('vid-b'),
 };
@@ -203,24 +205,22 @@ function loadLayer(layer, item, onReady) {
 
   if (isVid) {
     layer.img.style.display = 'none'; layer.img.src = '';
-    layer.bg.style.backgroundImage = 'none';
     layer.vid.style.display = 'block';
     layer.vid.src = item.url; layer.vid.load();
+    bgLayer.style.backgroundImage = 'none';
     if (onReady) onReady();
   } else {
     layer.vid.pause(); layer.vid.src = ''; layer.vid.style.display = 'none';
-    // 이미지 미리 로드
     const preload = new Image();
     preload.onload = () => {
       layer.img.src = item.url;
       layer.img.style.display = 'block';
-      layer.bg.style.backgroundImage = `url("${item.url}")`;
+      // 배경 블러는 독립 레이어에 업데이트 (전환 완료 후)
       if (onReady) onReady();
     };
     preload.onerror = () => {
       layer.img.src = item.url;
       layer.img.style.display = 'block';
-      layer.bg.style.backgroundImage = `url("${item.url}")`;
       if (onReady) onReady();
     };
     preload.src = item.url;
@@ -230,13 +230,15 @@ function loadLayer(layer, item, onReady) {
 // ── 즉시 표시 ─────────────────────────────────────
 function showImmediate(idx) {
   curIdx = clampIdx(idx);
-  loadLayer(front, items[curIdx], () => {
+  const item = items[curIdx];
+  loadLayer(front, item, () => {
     front.slide.style.transition = 'none';
     front.slide.style.opacity = '1';
     front.slide.style.zIndex = '2';
     back.slide.style.transition = 'none';
     back.slide.style.opacity = '0';
     back.slide.style.zIndex = '1';
+    if (item && !item.isVideo) bgLayer.style.backgroundImage = `url("${item.url}")`;
     noImage.className = '';
   });
 }
@@ -295,6 +297,11 @@ function transition(nextIdx) {
         back.slide.style.transform = '';
         back.slide.style.opacity = '0';
         back.slide.style.zIndex = '1';
+        // 배경 블러 업데이트 (전환 완료 후 조용히)
+        const currentItem = items[curIdx];
+        if (currentItem && !currentItem.isVideo) {
+          bgLayer.style.backgroundImage = `url("${currentItem.url}")`;
+        }
         busy = false;
         scheduleNext();
       }, spd + 50);

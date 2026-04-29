@@ -1099,10 +1099,12 @@ function renderAdminBoardGrid() {
       const bid = e.currentTarget.dataset.id;
       const br = brands.find(x => x.id === bid);
       if (!confirm(`"${br?.name}" 보드를 삭제할까요?`)) return;
+      const cloudUrls = extractCloudinaryUrls(br);
       brands = brands.filter(x => x.id !== bid);
       await DB.save(brands);
       renderAdminBoardGrid();
       toast('삭제했습니다');
+      if (cloudUrls.length) showCloudinaryDeleteInfo(br.name, cloudUrls);
     };
     card.querySelector('.card-delete-btn').addEventListener('touchend', deleteHandler);
     card.querySelector('.card-delete-btn').addEventListener('click', deleteHandler);
@@ -1234,16 +1236,39 @@ async function addBrand() {
   renderEditor();
   toast('새 보드를 추가했습니다');
 }
+/* Cloudinary URL 추출 헬퍼 */
+function extractCloudinaryUrls(b) {
+  const urls = [];
+  if (b.logo && b.logo.includes('cloudinary.com')) urls.push(b.logo);
+  if (b.thumbnail && b.thumbnail.includes('cloudinary.com')) urls.push(b.thumbnail);
+  // 본문에서 이미지/영상 URL 추출
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(b.contentHtml || '', 'text/html');
+  doc.querySelectorAll('img, video').forEach(el => {
+    const src = el.src || el.getAttribute('src') || '';
+    if (src.includes('cloudinary.com')) urls.push(src);
+  });
+  return [...new Set(urls)];
+}
+
+function showCloudinaryDeleteInfo(brandName, urls) {
+  if (!urls.length) return;
+  const list = urls.map(u => `• ${u}`).join('\n');
+  alert(`"${brandName}" 보드의 Cloudinary 파일 목록:\n\n${list}\n\nCloudinary Media Library에서 위 파일들을 삭제하면 용량을 회수할 수 있어요.`);
+}
+
 async function deleteBrand() {
   if (!currentEditingId) return;
   const b = brands.find(x => x.id === currentEditingId);
   if (!b) return;
   if (!confirm(`"${b.name}" 보드를 삭제할까요?`)) return;
+  const cloudUrls = extractCloudinaryUrls(b);
   brands = brands.filter(x => x.id !== currentEditingId);
   currentEditingId = brands[0]?.id || null;
   await DB.save(brands);
   backToAdminList();
   toast('삭제했습니다');
+  if (cloudUrls.length) showCloudinaryDeleteInfo(b.name, cloudUrls);
 }
 
 /* --- 에디터 렌더 --- */

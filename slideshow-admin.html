@@ -8,16 +8,16 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg:#0f0f1a; --panel:#181828; --card:#1e1e30;
-    --border:#2a2a3e; --accent:#7c6af7; --accent2:#5c8df7;
-    --green:#3ecf8e; --red:#ef4444;
-    --text:#e8e8f0; --muted:#7a7a9a; --radius:12px;
+    --bg:#070e1a; --panel:#0d1e35; --card:#112540;
+    --border:#1a3558; --accent:#5090c8; --accent2:#3a72a8;
+    --green:#3a72a8; --red:#5090c8;
+    --text:#e8f2ff; --muted:#8ab8d8; --radius:12px;
   }
   html,body{height:100%;font-family:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;background:var(--bg);color:var(--text);}
   .layout{display:flex;height:100vh;overflow:hidden;}
   .sidebar{width:340px;min-width:340px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
   .sidebar-logo{padding:20px 20px 14px;border-bottom:1px solid var(--border);}
-  .sidebar-logo h1{font-size:17px;font-weight:700;color:var(--accent);}
+  .sidebar-logo h1{font-size:17px;font-weight:700;color:var(--text);}
   .sidebar-logo p{font-size:11px;color:var(--muted);margin-top:3px;}
   .sidebar-section{padding:14px 18px;border-bottom:1px solid var(--border);}
   .sec-title{font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
@@ -26,9 +26,9 @@
   .tab-btn.active{background:var(--accent);color:#fff;}
   .tab-panel{display:none;} .tab-panel.active{display:block;}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 14px;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit;}
-  .btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{background:#6a58e0;}
-  .btn-green{background:var(--green);color:#fff;}   .btn-green:hover{background:#2bb87a;}
-  .btn-red{background:var(--red);color:#fff;}       .btn-red:hover{background:#cc2222;}
+  .btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{opacity:.85;}
+  .btn-green{background:var(--green);color:#fff;}   .btn-green:hover{opacity:.85;}
+  .btn-red{background:var(--red);color:#fff;}       .btn-red:hover{opacity:.85;}
   .btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--border);} .btn-ghost:hover{background:var(--border);}
   .btn-full{width:100%;} .btn-sm{padding:6px 10px;font-size:12px;border-radius:8px;}
   .playback-status{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--radius);background:var(--card);margin-bottom:10px;font-size:13px;font-weight:600;}
@@ -66,12 +66,12 @@
   .clabel{font-size:11px;color:var(--muted);}
   .ov-sec{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:11px;}
   .ov-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
-  .ov-title{font-size:12px;font-weight:700;color:var(--accent);}
+  .ov-title{font-size:12px;font-weight:700;color:var(--text);}
   .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
   .main-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
   .main-header h2{font-size:16px;font-weight:700;}
   .upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;cursor:pointer;transition:all .2s;margin:14px 22px 0;flex-shrink:0;}
-  .upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(124,106,247,.08);}
+  .upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(192,56,72,.08);}
   .upload-zone .icon{font-size:28px;margin-bottom:6px;}
   .upload-zone p{font-size:12px;color:var(--muted);}
   .upload-progress{margin:8px 22px 0;display:none;}
@@ -92,15 +92,15 @@
   .media-name{padding:5px 7px;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .range-row{display:flex;align-items:center;gap:8px;}
   .range-row input[type=range]{flex:1;}
-  .range-val{min-width:40px;text-align:right;font-size:12px;color:var(--accent);font-weight:700;}
+  .range-val{min-width:40px;text-align:right;font-size:12px;color:var(--text);font-weight:700;}
   .empty-state{text-align:center;padding:40px 16px;color:var(--muted);}
   .empty-state .icon{font-size:36px;margin-bottom:8px;}
   .info-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:12px;line-height:1.8;color:var(--muted);margin-top:8px;}
-  .info-url{font-size:12px;color:var(--accent2);font-weight:700;word-break:break-all;margin-top:3px;}
+  .info-url{font-size:12px;color:var(--text);font-weight:700;word-break:break-all;margin-top:3px;}
   .hint{font-size:11px;color:var(--muted);line-height:1.6;margin-top:4px;}
   .bg-ctrl{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
   .bg-ctrl label{font-size:11px;color:var(--muted);white-space:nowrap;}
-  .opacity-val{font-size:11px;color:var(--accent);font-weight:700;min-width:32px;text-align:right;}
+  .opacity-val{font-size:11px;color:var(--text);font-weight:700;min-width:32px;text-align:right;}
   ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
   #file-input{display:none;}
 
@@ -155,8 +155,8 @@
       <button class="btn btn-green btn-full" id="btn-play" onclick="setPlayback('play')">▶ 재생</button>
       <button class="btn btn-ghost btn-full" id="btn-stop" onclick="setPlayback('stop')">⏹ 정지</button>
     </div>
-    <button class="btn btn-full btn-sm" id="btn-edit-mode" style="margin-top:8px;background:#5c4bc9;color:#fff;" onclick="toggleEditMode()">🎨 레이아웃 편집</button>
-    <div class="hint" id="edit-hint" style="display:none;margin-top:4px;color:#7c6af7;">편집 모드 ON — 디스플레이에서 박스를 드래그하세요</div>
+    <button class="btn btn-full btn-sm" id="btn-edit-mode" style="margin-top:8px;background:var(--accent2);color:#fff;" onclick="toggleEditMode()">🎨 레이아웃 편집</button>
+    <div class="hint" id="edit-hint" style="display:none;margin-top:4px;color:var(--text);">편집 모드 ON — 디스플레이에서 박스를 드래그하세요</div>
   </div>
 
   <div class="sidebar-section" style="flex:1;">

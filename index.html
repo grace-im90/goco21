@@ -54,8 +54,8 @@
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 12px;
-    padding: clamp(10px, 2.5vh, 22px) clamp(16px, 4vw, 28px) clamp(8px, 1.5vh, 16px);
-    padding-top: max(clamp(10px, 2.5vh, 22px), calc(env(safe-area-inset-top, 0px) + 4px));
+    padding: 16px clamp(16px, 4vw, 28px) 12px;
+    padding-top: var(--sat, 16px);
     border-bottom: 1px solid rgba(255,255,255,.06);
     flex-shrink: 0;
   }
@@ -177,7 +177,7 @@
     flex-shrink: 0;
     text-align: center;
     padding: 8px 20px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--sab, 8px);
     background: rgba(0,0,0,.25);
     border-top: 1px solid rgba(255,255,255,.05);
     font-size: clamp(12px, 1.6vw, 14px);
@@ -302,7 +302,7 @@
   #admin-login .admin-header,
   #admin-panel .admin-header,
   #admin-editor-view .admin-header {
-    padding-top: max(14px, env(safe-area-inset-top, 0px));
+    padding-top: var(--sat, 16px);
   }
   .admin-header {
     padding: 14px 20px;
@@ -1727,6 +1727,33 @@ function updateClock() {
 }
 updateClock();
 setInterval(updateClock, 15000);
+
+/* Safe Area 동적 감지 */
+(function() {
+  function updateSafeArea() {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);left:0;width:1px;height:1px;pointer-events:none;';
+    document.body.appendChild(el);
+    const top = el.getBoundingClientRect().top;
+    document.body.removeChild(el);
+
+    const sat = Math.max(top, 0);
+    // 하단도 같은 방식으로
+    const el2 = document.createElement('div');
+    el2.style.cssText = 'position:fixed;bottom:env(safe-area-inset-bottom,0px);left:0;width:1px;height:1px;pointer-events:none;';
+    document.body.appendChild(el2);
+    const bot = window.innerHeight - el2.getBoundingClientRect().bottom;
+    document.body.removeChild(el2);
+    const sab = Math.max(bot, 0);
+
+    const headerPad = Math.max(sat + 8, 16);
+    const footerPad = Math.max(sab, 8);
+    document.documentElement.style.setProperty('--sat', headerPad + 'px');
+    document.documentElement.style.setProperty('--sab', footerPad + 'px');
+  }
+  updateSafeArea();
+  window.addEventListener('resize', updateSafeArea);
+})();
 
 /* 전체화면 버튼 자동 숨김 (3초) */
 (function() {

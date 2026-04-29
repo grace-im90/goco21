@@ -41,7 +41,11 @@
      홈 화면 — 가운데 정렬된 대형 타이틀
   ========================== */
   #kiosk-home {
-    position: fixed; inset: 0;
+    position: fixed;
+    top: env(safe-area-inset-top, 0);
+    left: env(safe-area-inset-left, 0);
+    right: env(safe-area-inset-right, 0);
+    bottom: env(safe-area-inset-bottom, 0);
     display: flex; flex-direction: column;
     background:
       radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,.25), transparent 60%),
@@ -332,8 +336,10 @@
   @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
   /* 모바일 어드민 버튼 최적화 */
   @media (max-width: 768px) {
-    .admin-header .actions { gap: 8px; }
-    .admin-header .actions button { min-height: 44px; padding: 10px 14px; font-size: 14px; }
+    .admin-header { flex-wrap: wrap; padding: 10px 14px; gap: 8px; }
+    .admin-header h2 { font-size: 14px; }
+    .admin-header .actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .admin-header .actions button { min-height: 44px; padding: 8px 10px; font-size: 13px; width: 100%; }
     .editor-actions { gap: 10px; }
     .editor-actions .btn { min-height: 48px; font-size: 16px; flex: 1; text-align: center; }
     .brand-list li { min-height: 52px; padding: 12px; }
@@ -342,6 +348,7 @@
     .editor input[type="text"], .editor select { min-height: 48px; font-size: 16px; padding: 12px; }
     .login-box input { min-height: 52px; font-size: 18px; }
     .login-box button { min-height: 52px; font-size: 18px; }
+    .admin-body { padding: 12px; }
   }
 
   .brand-list {
@@ -1014,10 +1021,10 @@ function renderEditor() {
             <button type="button" id="rte-hr" title="구분선">―</button>
             <div class="sep"></div>
             <label class="file-btn" style="padding:6px 10px;min-height:32px;line-height:20px;">이미지 삽입
-              <input type="file" accept="image/*" capture="environment" style="display:none" id="rte-img" />
+              <input type="file" accept="image/*" style="display:none" id="rte-img" />
             </label>
             <label class="file-btn" style="padding:6px 10px;min-height:32px;line-height:20px;">영상 삽입
-              <input type="file" accept="video/*" capture="environment" style="display:none" id="rte-vid" />
+              <input type="file" accept="video/*" style="display:none" id="rte-vid" />
             </label>
             <span id="rte-uploading"></span>
             <div class="sep"></div>

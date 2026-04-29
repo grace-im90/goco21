@@ -55,7 +55,7 @@
     align-items: center;
     gap: 12px;
     padding: 16px clamp(16px, 4vw, 28px) 12px;
-    padding-top: max(env(safe-area-inset-top, 0px) + 12px, 52px);
+    padding-top: 16px;
     border-bottom: 1px solid rgba(255,255,255,.06);
     flex-shrink: 0;
   }
@@ -302,7 +302,7 @@
   #admin-login .admin-header,
   #admin-panel .admin-header,
   #admin-editor-view .admin-header {
-    padding-top: max(env(safe-area-inset-top, 0px) + 12px, 52px);
+    padding-top: 16px;
   }
   .admin-header {
     padding: 14px 20px;
@@ -1784,31 +1784,42 @@ setInterval(updateClock, 15000);
   resetIdle();
 })();
 
-/* Safe Area 동적 감지 */
+/* Safe Area 동적 감지 — CSS 변수 + JS 직접 적용 */
 (function() {
-  function updateSafeArea() {
-    const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);left:0;width:1px;height:1px;pointer-events:none;';
-    document.body.appendChild(el);
-    const top = el.getBoundingClientRect().top;
-    document.body.removeChild(el);
+  function applyPadding() {
+    // CSS env() 값을 JS로 읽어서 직접 적용
+    const testEl = document.createElement('div');
+    testEl.style.cssText = 'position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);pointer-events:none;visibility:hidden;';
+    document.body.appendChild(testEl);
+    const cs = getComputedStyle(testEl);
+    const top = parseFloat(cs.paddingTop) || 0;
+    const bot = parseFloat(cs.paddingBottom) || 0;
+    document.body.removeChild(testEl);
 
-    const sat = Math.max(top, 0);
-    // 하단도 같은 방식으로
-    const el2 = document.createElement('div');
-    el2.style.cssText = 'position:fixed;bottom:env(safe-area-inset-bottom,0px);left:0;width:1px;height:1px;pointer-events:none;';
-    document.body.appendChild(el2);
-    const bot = window.innerHeight - el2.getBoundingClientRect().bottom;
-    document.body.removeChild(el2);
-    const sab = Math.max(bot, 0);
+    const headerPad = Math.max(top + 10, 52);
+    const footerPad = Math.max(bot, 8);
 
-    const headerPad = Math.max(sat + 8, 16);
-    const footerPad = Math.max(sab, 8);
-    document.documentElement.style.setProperty('--sat', headerPad + 'px');
-    document.documentElement.style.setProperty('--sab', footerPad + 'px');
+    // 헤더에 직접 적용
+    const header = document.querySelector('#kiosk-home header');
+    if (header) header.style.paddingTop = headerPad + 'px';
+
+    // 어드민 헤더에도 적용
+    document.querySelectorAll('.admin-header').forEach(h => {
+      h.style.paddingTop = headerPad + 'px';
+    });
+
+    // 푸터 하단 패딩
+    const footer = document.querySelector('.home-footer');
+    if (footer) footer.style.paddingBottom = footerPad + 'px';
   }
-  updateSafeArea();
-  window.addEventListener('resize', updateSafeArea);
+
+  // 즉시 + 로드 후 + 리사이즈 시 적용
+  applyPadding();
+  window.addEventListener('load', applyPadding);
+  window.addEventListener('resize', applyPadding);
+  // PWA에서 안전하게 적용되도록 약간 딜레이 후 재적용
+  setTimeout(applyPadding, 300);
+  setTimeout(applyPadding, 1000);
 })();
 
 /* 전체화면 버튼 자동 숨김 (3초) */

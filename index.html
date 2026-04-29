@@ -387,19 +387,30 @@
     from { transform: rotate(-1.5deg) scale(1); }
     to   { transform: rotate(1.5deg) scale(1); }
   }
-  .card-delete-btn {
+  .card-delete-btn, .card-edit-btn {
     display: none;
-    position: absolute; top: -8px; left: -8px;
-    width: 26px; height: 26px;
-    background: #ef4444; border-radius: 50%;
+    position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
     border: 2px solid #fff;
-    color: #fff; font-size: 14px; font-weight: 700;
+    color: #fff; font-size: 13px; font-weight: 700;
     align-items: center; justify-content: center;
     z-index: 10; cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    box-shadow: 0 2px 8px rgba(0,0,0,.5);
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
-  .edit-mode .card-delete-btn { display: flex; }
+  .card-delete-btn {
+    top: -8px; left: -8px;
+    background: #ef4444;
+  }
+  .card-edit-btn {
+    top: -8px; right: -8px;
+    background: #6366f1;
+    font-size: 12px;
+  }
+  .edit-mode .card-delete-btn,
+  .edit-mode .card-edit-btn { display: flex; }
 
   /* 컨텍스트 메뉴 */
   #board-context-menu {
@@ -1047,6 +1058,7 @@ function renderAdminBoardGrid() {
 
     card.innerHTML = `
       <button class="card-delete-btn" data-id="${b.id}">✕</button>
+      <button class="card-edit-btn" data-id="${b.id}">✏</button>
       <div class="card-inner">
         ${thumbHtml}
         <div class="card-info">
@@ -1056,7 +1068,7 @@ function renderAdminBoardGrid() {
       </div>`;
 
     // 삭제 버튼
-    card.querySelector('.card-delete-btn').addEventListener('touchend', async (e) => {
+    const deleteHandler = async (e) => {
       e.stopPropagation(); e.preventDefault();
       const bid = e.currentTarget.dataset.id;
       const br = brands.find(x => x.id === bid);
@@ -1065,17 +1077,16 @@ function renderAdminBoardGrid() {
       await DB.save(brands);
       renderAdminBoardGrid();
       toast('삭제했습니다');
-    });
-    card.querySelector('.card-delete-btn').addEventListener('click', async (e) => {
+    };
+    card.querySelector('.card-delete-btn').addEventListener('touchend', deleteHandler);
+    card.querySelector('.card-delete-btn').addEventListener('click', deleteHandler);
+
+    const editHandler = (e) => {
       e.stopPropagation(); e.preventDefault();
-      const bid = e.currentTarget.dataset.id;
-      const br = brands.find(x => x.id === bid);
-      if (!confirm(`"${br?.name}" 보드를 삭제할까요?`)) return;
-      brands = brands.filter(x => x.id !== bid);
-      await DB.save(brands);
-      renderAdminBoardGrid();
-      toast('삭제했습니다');
-    });
+      openEditorForBrand(b.id);
+    };
+    card.querySelector('.card-edit-btn').addEventListener('touchend', editHandler);
+    card.querySelector('.card-edit-btn').addEventListener('click', editHandler);
 
     // 길게 누르기 → 편집 모드 진입
     let pressTimer = null;
@@ -1093,11 +1104,7 @@ function renderAdminBoardGrid() {
     card.addEventListener('touchend', (e) => {
       if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
       if (didLongPress) { didLongPress = false; return; }
-      // 짧은 탭
-      if (editMode) {
-        e.preventDefault();
-        openEditorForBrand(b.id);
-      }
+      // 짧은 탭 — 편집 모드에서는 아무것도 안 함 (✏ 버튼으로만 에디터 진입)
     });
 
     card.addEventListener('touchmove', () => {
@@ -1105,10 +1112,7 @@ function renderAdminBoardGrid() {
     });
 
     card.addEventListener('click', () => {
-      if (editMode) {
-        openEditorForBrand(b.id);
-        return;
-      }
+      if (editMode) return; // 편집 모드에서는 카드 탭 무시
       openBrand(b.id);
     });
 
@@ -1490,15 +1494,16 @@ async function saveBrand() {
 }
 async function previewBrand() {
   commitEditorToModel();
-  await DB.save(brands);
-  // 미리보기 팝업 열기 — 닫으면 에디터로 복귀
-  document.getElementById('admin-editor-view').classList.add('hidden');
+  // 에디터는 그대로 두고 팝업만 위에 띄움 (z-index로 덮음)
+  const modal = document.getElementById('brand-modal');
+  // 임시로 modal z-index를 admin-editor-view(200) 위로
+  modal.style.zIndex = '300';
   openBrand(currentEditingId);
-  // 모달 닫힐 때 에디터로 복귀
+  // 닫기 버튼에 복귀 로직 추가
   const origClose = window.closeBrand;
   window.closeBrand = function() {
     origClose();
-    document.getElementById('admin-editor-view').classList.remove('hidden');
+    modal.style.zIndex = '';
     window.closeBrand = origClose;
   };
 }

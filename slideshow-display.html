@@ -227,32 +227,25 @@ window.addEventListener('message', (e) => {
   } catch(err) {}
 });
 
-/* 자동재생 활성화 — 오버레이 자동 클릭 시도 */
+/* 자동재생 활성화 오버레이 */
 (function() {
   const overlay = document.getElementById('autoplay-overlay');
+  if (!overlay) return;
 
   function activate() {
-    overlay.classList.add('fade-out');
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.5s ease';
+    overlay.style.pointerEvents = 'none';
     setTimeout(() => { overlay.style.display = 'none'; }, 600);
   }
 
-  // 사용자가 탭하면 즉시 활성화
   overlay.addEventListener('click', activate);
-  overlay.addEventListener('touchend', activate);
+  overlay.addEventListener('touchend', (e) => { e.preventDefault(); activate(); });
 
-  // 자동으로 클릭 이벤트 발생시도 (일부 브라우저에서 작동)
-  setTimeout(() => {
-    try {
-      overlay.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
-    } catch(e) {}
-  }, 500);
-
-  // 그래도 안 되면 3초 후 강제 숨김 (이미 인터랙션이 있었다고 가정)
-  setTimeout(() => {
-    activate();
-  }, 3000);
+  // 3초 후 자동 사라짐
+  setTimeout(activate, 3000);
 })();
-  }
+
   if (typeof data.isPlaying === 'boolean') playing = data.isPlaying;
   if (data.images) {
     const wasEmpty = items.length === 0;

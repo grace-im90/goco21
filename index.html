@@ -293,7 +293,7 @@
   /* ==========================
      관리자 로그인 / 패널
   ========================== */
-  #admin-login, #admin-panel {
+  #admin-login, #admin-panel, #admin-editor-view {
     position: fixed; inset: 0; z-index: 200;
     background: #0b0d12;
     display: flex; flex-direction: column;
@@ -1079,25 +1079,24 @@ function renderAdminBoardGrid() {
 
     // 길게 누르기 → 편집 모드 진입
     let pressTimer = null;
+    let didLongPress = false;
     card.addEventListener('touchstart', (e) => {
-      if (editMode) {
-        // 편집 모드에서 탭 → 에디터 진입
-        pressTimer = setTimeout(() => { pressTimer = null; }, 500);
-        return;
-      }
+      didLongPress = false;
+      if (editMode) return;
       pressTimer = setTimeout(() => {
         pressTimer = null;
+        didLongPress = true;
         enterEditMode();
       }, 600);
     }, { passive: true });
 
     card.addEventListener('touchend', (e) => {
-      if (pressTimer) {
-        clearTimeout(pressTimer); pressTimer = null;
-        if (editMode) {
-          // 편집 모드 탭 → 에디터 진입
-          openEditorForBrand(b.id);
-        }
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+      if (didLongPress) { didLongPress = false; return; }
+      // 짧은 탭
+      if (editMode) {
+        e.preventDefault();
+        openEditorForBrand(b.id);
       }
     });
 

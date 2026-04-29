@@ -8,8 +8,8 @@
   html, body { width:100%; height:100%; background:#000; overflow:hidden; font-family:'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif; }
   #stage { position:relative; width:100%; height:100%; overflow:hidden; clip-path:inset(0); }
   .slide { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-  .slide-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; }
-  .slide-vid { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:none; background:#000; }
+  .slide-img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:none; }
+  .slide-vid { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:none; background:#000; }
   @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes slideOutLeft  { from { transform: translateX(0); } to { transform: translateX(-100%); } }
   @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
@@ -284,37 +284,48 @@ function transition(nextIdx) {
 
   const t = settings.transition || 'fade';
   const spd = Math.max(300, settings.transitionSpeed || 800);
+  const item = items[curIdx];
 
-  // 다음 슬라이드 미리 로드
-  loadLayer(inactive, items[curIdx]);
-  resetSlide(inactive.slide);
+  // 이미지 미리 로드 후 전환
+  function doTransition() {
+    resetSlide(inactive.slide);
+    loadLayer(inactive, item);
 
-  if (t === 'slide') {
-    // 슬라이드: inactive는 오른쪽에서 들어오고, active는 왼쪽으로 나감
-    inactive.slide.style.zIndex = '3';
-    active.slide.style.zIndex = '2';
-    inactive.slide.style.opacity = '1';
-    inactive.slide.style.animation = `slideInRight ${spd}ms cubic-bezier(.4,0,.2,1) forwards`;
-    active.slide.style.animation = `slideOutLeft ${spd}ms cubic-bezier(.4,0,.2,1) forwards`;
-  } else {
-    // 페이드
-    inactive.slide.style.zIndex = '3';
-    active.slide.style.zIndex = '2';
-    inactive.slide.style.opacity = '0';
-    inactive.slide.style.animation = `fadeIn ${spd}ms ease forwards`;
-    active.slide.style.animation = `fadeOut ${spd}ms ease forwards`;
+    if (t === 'slide') {
+      inactive.slide.style.zIndex = '3';
+      active.slide.style.zIndex = '2';
+      inactive.slide.style.opacity = '1';
+      inactive.slide.style.animation = `slideInRight ${spd}ms cubic-bezier(.4,0,.2,1) forwards`;
+      active.slide.style.animation = `slideOutLeft ${spd}ms cubic-bezier(.4,0,.2,1) forwards`;
+    } else {
+      inactive.slide.style.zIndex = '3';
+      active.slide.style.zIndex = '2';
+      inactive.slide.style.opacity = '0';
+      inactive.slide.style.animation = `fadeIn ${spd}ms ease forwards`;
+      active.slide.style.animation = `fadeOut ${spd}ms ease forwards`;
+    }
+
+    setTimeout(() => {
+      [active, inactive] = [inactive, active];
+      resetSlide(inactive.slide);
+      inactive.slide.style.opacity = '0';
+      inactive.slide.style.zIndex = '1';
+      active.slide.style.zIndex = '2';
+      active.slide.style.opacity = '1';
+      busy = false;
+      scheduleNext();
+    }, spd + 50);
   }
 
-  setTimeout(() => {
-    [active, inactive] = [inactive, active];
-    resetSlide(inactive.slide);
-    inactive.slide.style.opacity = '0';
-    inactive.slide.style.zIndex = '1';
-    active.slide.style.zIndex = '2';
-    active.slide.style.opacity = '1';
-    busy = false;
-    scheduleNext();
-  }, spd + 50);
+  // 이미지인 경우 미리 로드 후 전환 (깜빡임 방지)
+  if (!isVideoItem(item)) {
+    const preload = new Image();
+    preload.onload = doTransition;
+    preload.onerror = doTransition;
+    preload.src = item.url;
+  } else {
+    doTransition();
+  }
 }
 
 // ── 오버레이 렌더링 ───────────────────────────────

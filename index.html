@@ -342,12 +342,17 @@
     background: #15171f;
     border: 1px solid rgba(255,255,255,.08);
     border-radius: 14px;
-    overflow: hidden;
+    overflow: visible;
     aspect-ratio: 3/4;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     transition: transform .15s;
+  }
+  .admin-board-card .card-inner {
+    width: 100%; height: 100%;
+    border-radius: 14px;
+    overflow: hidden;
   }
   .admin-board-card:active { transform: scale(.97); }
   .admin-board-card .card-thumb {
@@ -372,14 +377,29 @@
     font-size: 11px; opacity: .5; margin-top: 2px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .admin-board-card.move-mode {
-    border: 2px dashed #6366f1;
-    animation: wiggle .3s infinite alternate;
+  /* 편집 모드 */
+  .admin-board-card.edit-mode {
+    animation: wiggle .4s infinite alternate;
   }
+  .admin-board-card.edit-mode:active { transform: scale(.95); }
+  .admin-board-card.dragging-over { border: 2px dashed #6366f1; }
   @keyframes wiggle {
-    from { transform: rotate(-1deg); }
-    to   { transform: rotate(1deg); }
+    from { transform: rotate(-1.5deg) scale(1); }
+    to   { transform: rotate(1.5deg) scale(1); }
   }
+  .card-delete-btn {
+    display: none;
+    position: absolute; top: -8px; left: -8px;
+    width: 26px; height: 26px;
+    background: #ef4444; border-radius: 50%;
+    border: 2px solid #fff;
+    color: #fff; font-size: 14px; font-weight: 700;
+    align-items: center; justify-content: center;
+    z-index: 10; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .edit-mode .card-delete-btn { display: flex; }
 
   /* 컨텍스트 메뉴 */
   #board-context-menu {
@@ -715,8 +735,8 @@
 <!-- ================= 관리자 패널 : 보드 목록 ================= -->
 <div id="admin-panel" class="hidden">
   <div class="admin-header">
-    <h2>ADMIN · 콘텐츠 관리</h2>
-    <div class="actions">
+    <h2 id="admin-panel-title">ADMIN · 콘텐츠 관리</h2>
+    <div class="actions" id="admin-normal-actions">
       <button class="btn btn-ghost" onclick="exportData()">📤 백업</button>
       <label class="btn btn-ghost" style="cursor:pointer;">📥 가져오기
         <input type="file" accept=".json,application/json" style="display:none" onchange="importData(event)" />
@@ -724,10 +744,13 @@
       <button class="btn btn-ghost" onclick="showSettings()">⚙ 설정</button>
       <button class="btn btn-ghost" onclick="closeAdmin()">종료</button>
     </div>
+    <div class="actions hidden" id="admin-edit-actions">
+      <button class="btn btn-primary" onclick="exitEditMode()">완료</button>
+    </div>
   </div>
   <div class="admin-body">
     <div class="admin-board-grid" id="admin-board-grid"></div>
-    <button class="add-btn" onclick="addBrand()">+ 새 보드 추가</button>
+    <button class="add-btn" id="admin-add-btn" onclick="addBrand()">+ 새 보드 추가</button>
   </div>
 </div>
 
@@ -746,17 +769,6 @@
   </div>
 </div>
 
-<!-- 길게 누르기 컨텍스트 메뉴 -->
-<div id="board-context-menu" class="hidden">
-  <div class="context-overlay" onclick="closeContextMenu()"></div>
-  <div class="context-card">
-    <div class="context-brand-name" id="context-brand-name"></div>
-    <button onclick="contextEdit()">✏️ 편집</button>
-    <button onclick="contextMove()">↕️ 이동</button>
-    <button onclick="contextDelete()" class="danger">🗑 삭제</button>
-    <button onclick="closeContextMenu()" class="cancel">취소</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -969,11 +981,13 @@ document.addEventListener('keydown', e => {
 /* ============================================================
    관리자 패널
 ============================================================ */
-let contextTargetId = null;
-let moveMode = false;
-let movingId = null;
+let editMode = false;
+let dragSrcId = null;
+let touchDragId = null;
+let touchClone = null;
 
 function showAdminPanel() {
+  editMode = false;
   document.getElementById('admin-panel').classList.remove('hidden');
   document.getElementById('admin-editor-view').classList.add('hidden');
   renderAdminBoardGrid();
@@ -981,6 +995,7 @@ function showAdminPanel() {
 
 function backToAdminList() {
   commitEditorToModel();
+  editMode = false;
   document.getElementById('admin-editor-view').classList.add('hidden');
   document.getElementById('admin-panel').classList.remove('hidden');
   renderAdminBoardGrid();
@@ -988,46 +1003,130 @@ function backToAdminList() {
 
 function renderAdminList() { renderAdminBoardGrid(); }
 
+function enterEditMode() {
+  editMode = true;
+  document.getElementById('admin-normal-actions').classList.add('hidden');
+  document.getElementById('admin-edit-actions').classList.remove('hidden');
+  document.getElementById('admin-panel-title').textContent = '편집 모드';
+  document.getElementById('admin-add-btn').classList.add('hidden');
+  renderAdminBoardGrid();
+}
+
+function exitEditMode() {
+  editMode = false;
+  document.getElementById('admin-normal-actions').classList.remove('hidden');
+  document.getElementById('admin-edit-actions').classList.add('hidden');
+  document.getElementById('admin-panel-title').textContent = 'ADMIN · 콘텐츠 관리';
+  document.getElementById('admin-add-btn').classList.remove('hidden');
+  renderAdminBoardGrid();
+}
+
+function openEditorForBrand(id) {
+  exitEditMode();
+  currentEditingId = id;
+  document.getElementById('admin-panel').classList.add('hidden');
+  document.getElementById('admin-editor-view').classList.remove('hidden');
+  const b = brands.find(x => x.id === id);
+  document.getElementById('editor-view-title').textContent = b?.name || '보드 편집';
+  renderEditor();
+}
+
 function renderAdminBoardGrid() {
   const grid = document.getElementById('admin-board-grid');
   grid.innerHTML = '';
-  brands.forEach((b, idx) => {
+
+  brands.forEach((b) => {
     const card = document.createElement('div');
-    card.className = 'admin-board-card' + (moveMode ? ' move-mode' : '');
+    card.className = 'admin-board-card' + (editMode ? ' edit-mode' : '');
     card.dataset.id = b.id;
+
     const initial = (b.name || '?').charAt(0).toUpperCase();
     const thumbHtml = b.thumbnail
-      ? `<img class="card-thumb" src="${b.thumbnail}">`
+      ? `<img class="card-thumb" src="${esc(b.thumbnail)}">`
       : `<div class="card-thumb-placeholder">${esc(initial)}</div>`;
+
     card.innerHTML = `
-      ${thumbHtml}
-      <div class="card-info">
-        <div class="card-name">${esc(b.name || '(이름 없음)')}</div>
-        <div class="card-cat">${esc(b.category || '')}</div>
+      <button class="card-delete-btn" data-id="${b.id}">✕</button>
+      <div class="card-inner">
+        ${thumbHtml}
+        <div class="card-info">
+          <div class="card-name">${esc(b.name || '(이름 없음)')}</div>
+          <div class="card-cat">${esc(b.category || '')}</div>
+        </div>
       </div>`;
 
-    // 탭 — 미리보기
-    card.onclick = () => {
-      if (moveMode) return;
-      openBrand(b.id);
-    };
+    // 삭제 버튼
+    card.querySelector('.card-delete-btn').addEventListener('touchend', async (e) => {
+      e.stopPropagation(); e.preventDefault();
+      const bid = e.currentTarget.dataset.id;
+      const br = brands.find(x => x.id === bid);
+      if (!confirm(`"${br?.name}" 보드를 삭제할까요?`)) return;
+      brands = brands.filter(x => x.id !== bid);
+      await DB.save(brands);
+      renderAdminBoardGrid();
+      toast('삭제했습니다');
+    });
+    card.querySelector('.card-delete-btn').addEventListener('click', async (e) => {
+      e.stopPropagation(); e.preventDefault();
+      const bid = e.currentTarget.dataset.id;
+      const br = brands.find(x => x.id === bid);
+      if (!confirm(`"${br?.name}" 보드를 삭제할까요?`)) return;
+      brands = brands.filter(x => x.id !== bid);
+      await DB.save(brands);
+      renderAdminBoardGrid();
+      toast('삭제했습니다');
+    });
 
-    // 길게 누르기 — 컨텍스트 메뉴
+    // 길게 누르기 → 편집 모드 진입
     let pressTimer = null;
-    card.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(() => { pressTimer = null; openContextMenu(b.id); }, 500);
+    card.addEventListener('touchstart', (e) => {
+      if (editMode) {
+        // 편집 모드에서 탭 → 에디터 진입
+        pressTimer = setTimeout(() => { pressTimer = null; }, 500);
+        return;
+      }
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        enterEditMode();
+      }, 600);
     }, { passive: true });
-    card.addEventListener('touchend', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
-    card.addEventListener('touchmove', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
 
-    // 이동 모드 드래그
-    if (moveMode) {
+    card.addEventListener('touchend', (e) => {
+      if (pressTimer) {
+        clearTimeout(pressTimer); pressTimer = null;
+        if (editMode) {
+          // 편집 모드 탭 → 에디터 진입
+          openEditorForBrand(b.id);
+        }
+      }
+    });
+
+    card.addEventListener('touchmove', () => {
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    });
+
+    card.addEventListener('click', () => {
+      if (editMode) {
+        openEditorForBrand(b.id);
+        return;
+      }
+      openBrand(b.id);
+    });
+
+    // 드래그 (편집 모드)
+    if (editMode) {
       card.draggable = true;
-      card.addEventListener('dragstart', e => { movingId = b.id; card.style.opacity = '.4'; e.dataTransfer.setData('text/plain', b.id); });
+      card.addEventListener('dragstart', e => {
+        dragSrcId = b.id;
+        card.style.opacity = '.4';
+        e.dataTransfer.setData('text/plain', b.id);
+      });
       card.addEventListener('dragend', () => { card.style.opacity = '1'; });
-      card.addEventListener('dragover', e => e.preventDefault());
+      card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('dragging-over'); });
+      card.addEventListener('dragleave', () => card.classList.remove('dragging-over'));
       card.addEventListener('drop', async e => {
         e.preventDefault();
+        card.classList.remove('dragging-over');
         const fromId = e.dataTransfer.getData('text/plain');
         if (fromId === b.id) return;
         const from = brands.findIndex(x => x.id === fromId);
@@ -1043,51 +1142,6 @@ function renderAdminBoardGrid() {
 
     grid.appendChild(card);
   });
-}
-
-function openContextMenu(id) {
-  contextTargetId = id;
-  const b = brands.find(x => x.id === id);
-  document.getElementById('context-brand-name').textContent = b?.name || '';
-  document.getElementById('board-context-menu').classList.remove('hidden');
-}
-function closeContextMenu() {
-  document.getElementById('board-context-menu').classList.add('hidden');
-  contextTargetId = null;
-}
-function contextEdit() {
-  closeContextMenu();
-  currentEditingId = contextTargetId;
-  document.getElementById('admin-panel').classList.add('hidden');
-  document.getElementById('admin-editor-view').classList.remove('hidden');
-  const b = brands.find(x => x.id === currentEditingId);
-  document.getElementById('editor-view-title').textContent = b?.name || '보드 편집';
-  renderEditor();
-}
-function contextMove() {
-  closeContextMenu();
-  moveMode = true;
-  renderAdminBoardGrid();
-  toast('보드를 드래그해서 순서를 바꾸세요. 완료 후 빈 곳을 탭하세요.');
-  // 빈 곳 탭하면 이동 모드 종료
-  setTimeout(() => {
-    document.getElementById('admin-board-grid').addEventListener('click', exitMoveMode, { once: true });
-  }, 300);
-}
-function exitMoveMode() {
-  moveMode = false;
-  renderAdminBoardGrid();
-}
-async function contextDelete() {
-  closeContextMenu();
-  const b = brands.find(x => x.id === contextTargetId);
-  if (!b) return;
-  if (!confirm(`"${b.name}" 보드를 삭제할까요?`)) return;
-  brands = brands.filter(x => x.id !== contextTargetId);
-  if (currentEditingId === contextTargetId) currentEditingId = brands[0]?.id || null;
-  await DB.save(brands);
-  renderAdminBoardGrid();
-  toast('삭제했습니다');
 }
 async function addBrand() {
   commitEditorToModel();
@@ -1690,10 +1744,7 @@ document.addEventListener('touchend', e => {
 })();
 
 /* 전역 노출 */
-window.contextEdit = contextEdit;
-window.contextMove = contextMove;
-window.contextDelete = contextDelete;
-window.closeContextMenu = closeContextMenu;
+window.exitEditMode = exitEditMode;
 window.backToAdminList = backToAdminList;
 window.addBrand = addBrand;
 window.deleteBrand = deleteBrand;

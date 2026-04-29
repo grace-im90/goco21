@@ -346,7 +346,10 @@
     aspect-ratio: 3/4;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
     transition: transform .15s;
   }
   .admin-board-card .card-inner {
@@ -381,11 +384,19 @@
   .admin-board-card.edit-mode {
     animation: wiggle .4s infinite alternate;
   }
-  .admin-board-card.edit-mode:active { transform: scale(.95); }
-  .admin-board-card.dragging-over { border: 2px dashed #6366f1; }
+  .admin-board-card.dragging-over {
+    border: 2px solid #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.4);
+  }
   @keyframes wiggle {
-    from { transform: rotate(-1.5deg) scale(1); }
-    to   { transform: rotate(1.5deg) scale(1); }
+    from { transform: rotate(-1.5deg); }
+    to   { transform: rotate(1.5deg); }
+  }
+  /* 텍스트/이미지 선택 방지 */
+  .admin-board-grid * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
   }
   .card-delete-btn, .card-edit-btn {
     display: none;
@@ -1116,30 +1127,76 @@ function renderAdminBoardGrid() {
       openBrand(b.id);
     });
 
-    // 드래그 (편집 모드)
+    // 드래그 — 터치(iOS/Android) + 마우스(Mac/Windows/iPad) 통합
     if (editMode) {
+      // ── 마우스/트랙패드 드래그 ──
       card.draggable = true;
-      card.addEventListener('dragstart', e => {
+      card.addEventListener('dragstart', (e) => {
         dragSrcId = b.id;
         card.style.opacity = '.4';
+        e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', b.id);
       });
-      card.addEventListener('dragend', () => { card.style.opacity = '1'; });
-      card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('dragging-over'); });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '1';
+        document.querySelectorAll('.admin-board-card').forEach(c => c.classList.remove('dragging-over'));
+      });
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (b.id !== dragSrcId) card.classList.add('dragging-over');
+      });
       card.addEventListener('dragleave', () => card.classList.remove('dragging-over'));
-      card.addEventListener('drop', async e => {
+      card.addEventListener('drop', async (e) => {
         e.preventDefault();
         card.classList.remove('dragging-over');
         const fromId = e.dataTransfer.getData('text/plain');
-        if (fromId === b.id) return;
+        if (!fromId || fromId === b.id) return;
         const from = brands.findIndex(x => x.id === fromId);
-        const to = brands.findIndex(x => x.id === b.id);
+        const to   = brands.findIndex(x => x.id === b.id);
         if (from < 0 || to < 0) return;
         const [moved] = brands.splice(from, 1);
         brands.splice(to, 0, moved);
         await DB.save(brands);
         renderAdminBoardGrid();
         toast('순서를 변경했습니다');
+      });
+
+      // ── 터치 드래그 (iOS / Android) ──
+      card.addEventListener('touchstart', (e) => {
+        touchDragId = b.id;
+        card.style.opacity = '.5';
+      }, { passive: true });
+
+      card.addEventListener('touchmove', (e) => {
+        if (!touchDragId || touchDragId !== b.id) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        document.querySelectorAll('.admin-board-card').forEach(c => c.classList.remove('dragging-over'));
+        const els = document.elementsFromPoint(touch.clientX, touch.clientY);
+        const target = els.find(el => el.classList.contains('admin-board-card') && el.dataset.id && el.dataset.id !== touchDragId);
+        if (target) target.classList.add('dragging-over');
+      }, { passive: false });
+
+      card.addEventListener('touchend', async (e) => {
+        if (!touchDragId || touchDragId !== b.id) return;
+        card.style.opacity = '1';
+        const touch = e.changedTouches[0];
+        document.querySelectorAll('.admin-board-card').forEach(c => c.classList.remove('dragging-over'));
+        const els = document.elementsFromPoint(touch.clientX, touch.clientY);
+        const target = els.find(el => el.classList.contains('admin-board-card') && el.dataset.id && el.dataset.id !== touchDragId);
+        if (target) {
+          const from = brands.findIndex(x => x.id === touchDragId);
+          const to   = brands.findIndex(x => x.id === target.dataset.id);
+          if (from >= 0 && to >= 0) {
+            const [moved] = brands.splice(from, 1);
+            brands.splice(to, 0, moved);
+            await DB.save(brands);
+            renderAdminBoardGrid();
+            toast('순서를 변경했습니다');
+          }
+        }
+        touchDragId = null;
       });
     }
 

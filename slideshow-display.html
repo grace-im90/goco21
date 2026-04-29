@@ -35,15 +35,12 @@
   #no-image.show { display:flex; }
   #no-image .icon { font-size:80px; margin-bottom:20px; }
   #no-image p { font-size:18px; text-align:center; line-height:1.8; }
-  /* 자동재생 오버레이 */
-  #autoplay-overlay { position:fixed; inset:0; z-index:9999; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:opacity .5s ease; }
-  #autoplay-overlay .play-icon { width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:16px; border:2px solid rgba(255,255,255,.3); }
-  #autoplay-overlay p { color:rgba(255,255,255,.7); font-size:16px; }
+
 </style>
 </head>
 <body>
 <div id="stage">
-  <div class="slide" id="slide-a" style="z-index:2;opacity:1;">
+  <div class="slide" id="slide-a" style="z-index:2;opacity:0;transition:opacity .8s ease;">
     <div class="slide-bg" id="bg-a"></div>
     <img class="slide-img" id="img-a" src="" alt="">
     <video class="slide-vid" id="vid-a" muted playsinline></video>
@@ -72,17 +69,12 @@
     <div class="edit-handle ml"></div><div class="edit-handle mr"></div><div class="edit-handle mt"></div><div class="edit-handle mb"></div>
   </div>
   <button id="fs-btn" onclick="toggleFullscreen()" title="전체화면">⛶</button>
-  <div id="no-image" class="show">
+  <div id="no-image">
     <div class="icon">🖼</div>
     <p>관리자 패널에서<br>이미지 또는 동영상을 추가해 주세요</p>
   </div>
 </div>
 
-<!-- 자동재생 오버레이 -->
-<div id="autoplay-overlay">
-  <div class="play-icon">▶</div>
-  <p>화면을 터치하여 시작</p>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -99,19 +91,6 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-
-// ── 자동재생 오버레이 ──────────────────────────────
-(function() {
-  const overlay = document.getElementById('autoplay-overlay');
-  function activate() {
-    overlay.style.opacity = '0';
-    overlay.style.pointerEvents = 'none';
-    setTimeout(() => { overlay.style.display = 'none'; }, 600);
-  }
-  overlay.addEventListener('click', activate);
-  overlay.addEventListener('touchend', function(e) { e.preventDefault(); activate(); });
-  setTimeout(activate, 3000);
-})();
 
 // ── 유틸 ──────────────────────────────────────────
 const DEFAULT_FONT = "'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif";
@@ -139,7 +118,15 @@ db.ref('slideshow/state').on('value', snap => {
   const data=snap.val(); if (!data) return;
   if (data.settings) settings=data.settings;
   if (data.overlay)  renderOverlay(data.overlay);
-  if (data.layouts) { for (const k in data.layouts) { if (layouts[k]) layouts[k]={...layouts[k],...data.layouts[k]}; } applyAllLayouts(); }
+  if (data.layouts) { for (const k in data.layouts) { if (layouts[k]) layouts[k]={...layouts[k],...data.layouts[k]}; } applyAllLayouts();
+
+/* 페이지 로드 시 바로 재생 시작 */
+window.addEventListener('load', () => {
+  if (items.length > 0 && playing) {
+    showImmediate(0);
+    scheduleNext();
+  }
+}); }
   if (typeof data.isPlaying==='boolean') playing=data.isPlaying;
   if (data.images) {
     const wasEmpty=items.length===0;
@@ -273,7 +260,9 @@ function scheduleNext() {
 function stopTimer(){clearTimeout(timer);timer=null;active.vid.onended=null;inactive.vid.onended=null;}
 function showImmediate(idx) {
   curIdx=clampIdx(idx); loadLayer(active,items[curIdx]);
-  active.slide.style.opacity='1'; active.slide.style.zIndex='2'; active.slide.style.transform='';
+  active.slide.style.transition='opacity .8s ease';
+  setTimeout(() => { active.slide.style.opacity='1'; }, 100);
+  active.slide.style.zIndex='2'; active.slide.style.transform='';
   inactive.slide.style.opacity='0'; inactive.slide.style.zIndex='1'; noImage.className='';
 }
 function transition(nextIdx) {

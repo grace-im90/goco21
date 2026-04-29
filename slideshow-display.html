@@ -129,6 +129,9 @@
     <div class="edit-handle ml"></div><div class="edit-handle mr"></div>
     <div class="edit-handle mt"></div><div class="edit-handle mb"></div>
   </div>
+  <!-- YouTube iframe -->
+  <iframe id="yt-frame" style="position:absolute;inset:0;width:100%;height:100%;border:none;z-index:3;display:none;" allow="autoplay;fullscreen" allowfullscreen></iframe>
+
   <button id="fs-btn" onclick="toggleFullscreen()" title="전체화면 전환">⛶</button>
   <div id="no-image" class="show">
     <div class="icon">🖼</div>
@@ -324,21 +327,39 @@ function clampIdx(idx) { if (!items.length) return 0; return ((idx%items.length)
 function raf2(fn) { requestAnimationFrame(()=>requestAnimationFrame(fn)); }
 
 function loadLayer(layer, item) {
-  if (isVideoItem(item)) {
+  const ytFrame = document.getElementById('yt-frame');
+  if (item && item.isYoutube) {
+    // YouTube - hide slides, show iframe
     layer.img.style.display='none'; layer.img.src='';
-    layer.bg.style.backgroundImage='none';
-    layer.vid.style.display='block'; layer.vid.src=item.url; layer.vid.load();
-  } else {
     layer.vid.pause(); layer.vid.src=''; layer.vid.style.display='none';
-    layer.img.style.display='block'; layer.img.src=item.url;
-    layer.bg.style.backgroundImage=`url("${item.url}")`;
+    layer.bg.style.backgroundImage='none';
+    document.getElementById('slide-a').style.display='none';
+    document.getElementById('slide-b').style.display='none';
+    ytFrame.src = item.url;
+    ytFrame.style.display='block';
+  } else {
+    ytFrame.style.display='none'; ytFrame.src='';
+    document.getElementById('slide-a').style.display='';
+    document.getElementById('slide-b').style.display='';
+    if (isVideoItem(item)) {
+      layer.img.style.display='none'; layer.img.src='';
+      layer.bg.style.backgroundImage='none';
+      layer.vid.style.display='block'; layer.vid.src=item.url; layer.vid.load();
+    } else {
+      layer.vid.pause(); layer.vid.src=''; layer.vid.style.display='none';
+      layer.img.style.display='block'; layer.img.src=item.url;
+      layer.bg.style.backgroundImage=`url("${item.url}")`;
+    }
   }
 }
 
 function scheduleNext() {
   stopTimer();
   const item = items[curIdx]; if (!item||!playing) return;
-  if (isVideoItem(item)) {
+  if (item.isYoutube) {
+    // YouTube - use interval setting
+    if (items.length>1) timer=setTimeout(()=>{ if(playing) transition(curIdx+1); }, (settings.interval||10)*1000);
+  } else if (isVideoItem(item)) {
     const vid=active.vid; vid.currentTime=0; vid.onended=null;
     vid.play().catch(()=>{});
     vid.onended=()=>{ if(playing) transition(curIdx+1); };

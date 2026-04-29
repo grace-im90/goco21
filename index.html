@@ -1753,6 +1753,31 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 15000);
 
+/* 자동 홈 복귀 — 30초 무조작 시 팝업 닫고 홈으로 */
+(function() {
+  let idleTimer = null;
+  const IDLE_MS = 120000; // 2분
+
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      // 팝업 열려있으면 닫기
+      const modal = document.getElementById('brand-modal');
+      if (modal && !modal.classList.contains('hidden')) {
+        closeBrand();
+      }
+      // 관리자 모드면 복귀 안 함 (관리자는 작업 중일 수 있으므로)
+    }, IDLE_MS);
+  }
+
+  // 터치/클릭/마우스 움직임 시 타이머 리셋
+  ['touchstart', 'touchend', 'click', 'mousemove', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, resetIdle, { passive: true });
+  });
+
+  resetIdle();
+})();
+
 /* Safe Area 동적 감지 */
 (function() {
   function updateSafeArea() {

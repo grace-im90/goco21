@@ -1123,8 +1123,12 @@ function renderAdminBoardGrid() {
     });
 
     card.addEventListener('click', () => {
-      if (editMode) return; // 편집 모드에서는 카드 탭 무시
-      openBrand(b.id);
+      if (editMode) {
+        openEditorForBrand(b.id);
+        return;
+      }
+      // 일반 모드: 한 번 탭 → 에디터
+      openEditorForBrand(b.id);
     });
 
     // 드래그 — 터치(iOS/Android) + 마우스(Mac/Windows/iPad) 통합

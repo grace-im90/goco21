@@ -91,6 +91,24 @@
   #no-image.show { display: flex; }
   #no-image .icon { font-size: 80px; margin-bottom: 20px; }
   #no-image p { font-size: 18px; text-align: center; line-height: 1.8; }
+  /* 자동재생 활성화 오버레이 */
+  #autoplay-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: opacity .5s ease;
+  }
+  #autoplay-overlay.fade-out { opacity: 0; pointer-events: none; }
+  #autoplay-overlay .play-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; margin-bottom: 16px;
+    border: 2px solid rgba(255,255,255,.3);
+  }
+  #autoplay-overlay p { color: rgba(255,255,255,.7); font-size: 16px; font-family: system-ui; }
 </style>
 </head>
 <body>
@@ -130,12 +148,18 @@
     <div class="edit-handle mt"></div><div class="edit-handle mb"></div>
   </div>
   <!-- YouTube iframe -->
-  <iframe id="yt-frame" style="position:absolute;inset:0;width:100%;height:100%;border:none;z-index:3;display:none;" allow="autoplay;fullscreen" allowfullscreen></iframe>
+  <iframe id="yt-frame" style="position:absolute;inset:0;width:100%;height:100%;border:none;z-index:3;display:none;background:#000;" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>
 
   <button id="fs-btn" onclick="toggleFullscreen()" title="전체화면 전환">⛶</button>
   <div id="no-image" class="show">
     <div class="icon">🖼</div>
     <p>관리자 패널에서<br>이미지 또는 동영상을 추가해 주세요</p>
+  </div>
+
+  <!-- 자동재생 활성화 오버레이 -->
+  <div id="autoplay-overlay">
+    <div class="play-icon">▶</div>
+    <p>화면을 터치하여 시작</p>
   </div>
 </div>
 
@@ -187,6 +211,47 @@ db.ref('slideshow/state').on('value', snap => {
   if (data.layouts) {
     for (const k in data.layouts) { if (layouts[k]) layouts[k] = { ...layouts[k], ...data.layouts[k] }; }
     applyAllLayouts();
+
+/* YouTube 영상 종료 감지 */
+window._ytWaiting = false;
+window.addEventListener('message', (e) => {
+  try {
+    const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    // YouTube Player State: 0 = ended
+    if (data && data.event === 'onStateChange' && data.info === 0) {
+      if (window._ytWaiting && playing) {
+        window._ytWaiting = false;
+        transition(curIdx + 1);
+      }
+    }
+  } catch(err) {}
+});
+
+/* 자동재생 활성화 — 오버레이 자동 클릭 시도 */
+(function() {
+  const overlay = document.getElementById('autoplay-overlay');
+
+  function activate() {
+    overlay.classList.add('fade-out');
+    setTimeout(() => { overlay.style.display = 'none'; }, 600);
+  }
+
+  // 사용자가 탭하면 즉시 활성화
+  overlay.addEventListener('click', activate);
+  overlay.addEventListener('touchend', activate);
+
+  // 자동으로 클릭 이벤트 발생시도 (일부 브라우저에서 작동)
+  setTimeout(() => {
+    try {
+      overlay.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    } catch(e) {}
+  }, 500);
+
+  // 그래도 안 되면 3초 후 강제 숨김 (이미 인터랙션이 있었다고 가정)
+  setTimeout(() => {
+    activate();
+  }, 3000);
+})();
   }
   if (typeof data.isPlaying === 'boolean') playing = data.isPlaying;
   if (data.images) {
@@ -335,8 +400,13 @@ function loadLayer(layer, item) {
     layer.bg.style.backgroundImage='none';
     document.getElementById('slide-a').style.display='none';
     document.getElementById('slide-b').style.display='none';
-    ytFrame.src = item.url;
-    ytFrame.style.display='block';
+    // src 재설정으로 강제 재로드 + 자동재생
+    ytFrame.src = '';
+    setTimeout(() => {
+      const ytUrl = item.url.includes('enablejsapi') ? item.url : item.url + '&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
+      ytFrame.src = ytUrl;
+      ytFrame.style.display = 'block';
+    }, 50);
   } else {
     ytFrame.style.display='none'; ytFrame.src='';
     document.getElementById('slide-a').style.display='';
@@ -357,8 +427,8 @@ function scheduleNext() {
   stopTimer();
   const item = items[curIdx]; if (!item||!playing) return;
   if (item.isYoutube) {
-    // YouTube - use interval setting
-    if (items.length>1) timer=setTimeout(()=>{ if(playing) transition(curIdx+1); }, (settings.interval||10)*1000);
+    // YouTube - listen for video end via postMessage API
+    window._ytWaiting = true;
   } else if (isVideoItem(item)) {
     const vid=active.vid; vid.currentTime=0; vid.onended=null;
     vid.play().catch(()=>{});

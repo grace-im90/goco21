@@ -25,6 +25,7 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
   z-index: 0;
   background-size: cover;
   background-position: center;
+  background-color: #000;
   filter: blur(32px) brightness(.5) saturate(1.2);
   transform: scale(1.15);
   transition: opacity 1.2s ease;
@@ -79,6 +80,13 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; font
 .ov-box.selected .edit-label { display: block; }
 .marquee-outer { width: 100%; position: relative; }
 .text-static { display: block; padding: 0 28px; white-space: pre-wrap; word-break: break-word; }
+@keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(var(--marquee-dist)); } }
+.marquee-track {
+  display: flex; white-space: nowrap;
+  animation: marquee-scroll linear infinite;
+  animation-duration: var(--marquee-dur);
+  will-change: transform;
+}
 
 #fs-btn {
   position: absolute; top: 14px; right: 14px; z-index: 200;
@@ -376,11 +384,11 @@ db.ref('slideshow/control').on('value', snap => {
   const ctrl = snap.val(); if (!ctrl) return;
   if (ctrl.action === 'play') {
     playing = true;
-    [...mainAnims, ...subAnims].forEach(a => { try { a && a.play(); } catch(e) {} });
+    [...mainAnims, ...subAnims].forEach(a => { try { if(a && a.el) a.el.style.animationPlayState='running'; else if(a) a.play && a.play(); } catch(e) {} });
     if (items.length > 0) scheduleNext();
   } else if (ctrl.action === 'stop') {
     playing = false; stopTimer(); front.vid.pause();
-    [...mainAnims, ...subAnims].forEach(a => { try { a && a.pause(); } catch(e) {} });
+    [...mainAnims, ...subAnims].forEach(a => { try { if(a && a.el) a.el.style.animationPlayState='paused'; else if(a) a.pause && a.pause(); } catch(e) {} });
   } else if (ctrl.action === 'show' && typeof ctrl.idx === 'number') {
     stopTimer(); transition(ctrl.idx);
   }
@@ -558,22 +566,21 @@ function renderTextSection({ outerEl, text, size, align, color, weight, fontFami
       const outerH = outerEl.offsetHeight || Math.ceil(size * 1.6), topPx = Math.max(0, (outerH - tH) / 2);
       const spd2 = Math.max(1, speed || 60), gap = Math.max(80, Math.round(cW * 0.15));
       const unitW = tW + gap, copies = Math.ceil(cW / unitW) + 2;
+      const dur = unitW / spd2; // seconds
+
       const track = document.createElement('div');
-      track.style.cssText = `position:absolute;top:${topPx}px;left:0;display:flex;white-space:nowrap;`;
+      track.className = 'marquee-track';
+      track.style.cssText = `position:absolute;top:${topPx}px;left:0;`;
+      track.style.setProperty('--marquee-dist', `-${unitW}px`);
+      track.style.setProperty('--marquee-dur', `${dur}s`);
+
       for (let i = 0; i < copies; i++) {
         const s = document.createElement('span');
         s.style.cssText = `display:inline-block;flex-shrink:0;padding-right:${gap}px;font-size:${size}px;color:${color};font-weight:${weight};font-family:${ff};white-space:nowrap;line-height:1;`;
         s.textContent = text; track.appendChild(s);
       }
       outerEl.appendChild(track);
-      const entranceDur = cW / spd2 * 1000, loopDur = unitW / spd2 * 1000;
-      const entrance = track.animate([{ transform: `translateX(${cW}px)` }, { transform: 'translateX(0px)' }], { duration: entranceDur, easing: 'linear', fill: 'forwards' });
-      animRef([entrance]);
-      entrance.finished.then(() => {
-        if (outerEl._mGen !== gen) return; entrance.cancel();
-        const loop = track.animate([{ transform: 'translateX(0px)' }, { transform: `translateX(${-unitW}px)` }], { duration: loopDur, iterations: Infinity, easing: 'linear' });
-        animRef([loop]);
-      }).catch(() => {});
+      animRef([{ cancel: () => { track.style.animationPlayState = 'paused'; } }]);
     }));
   }
 }

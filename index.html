@@ -11,8 +11,9 @@
 <title>셀렉상회 큐레이션 — Kiosk</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@700;900&display=swap');
-
+  /* ==========================
+     기본
+  ========================== */
   *, *::before, *::after { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; height: 100%;
@@ -24,9 +25,11 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none;
     touch-action: manipulation;
-    overscroll-behavior: none;
-    -webkit-touch-callout: none;
-    -webkit-user-drag: none;
+    /* 키오스크 잠금 */
+    overscroll-behavior: none;            /* 풀투리프레시/바운스 차단 */
+    -webkit-touch-callout: none;          /* iOS 길게누르기 메뉴 차단 */
+    -webkit-user-drag: none;              /* 이미지/링크 드래그 차단 */
+    /* 가로모드 텍스트 자동 확대 방지 */
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -38,6 +41,9 @@
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 8px; }
 
+  /* ==========================
+     홈 화면 — 가운데 정렬된 대형 타이틀
+  ========================== */
   #kiosk-home {
     position: fixed; inset: 0;
     display: flex; flex-direction: column;
@@ -57,21 +63,41 @@
     border-bottom: 1px solid rgba(255,255,255,.06);
     flex-shrink: 0;
   }
-  .header-spacer { min-width: 0; }
-  .header-title { text-align: center; min-width: 0; grid-column: 2; }
-  .header-right { grid-column: 3; justify-self: end; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .header-spacer { min-width: 0; } /* 비어있는 좌측 */
+  .header-title {
+    text-align: center; min-width: 0;
+    grid-column: 2;
+  }
+  .header-right {
+    grid-column: 3;
+    justify-self: end;
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
 
   #plaza-title {
     font-size: clamp(30px, 6vw, 48px);
-    letter-spacing: .04em; margin: 0; font-weight: 700;
+    letter-spacing: .04em;
+    margin: 0;
+    font-weight: 700;
     background: linear-gradient(90deg, #fff, #c7d2fe);
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  #plaza-sub { opacity: .55; font-size: clamp(11px, 1.8vw, 14px); letter-spacing: .04em; margin-top: 6px; }
+  #plaza-sub {
+    opacity: .55;
+    font-size: clamp(11px, 1.8vw, 14px);
+    letter-spacing: .04em;
+    margin-top: 6px;
+  }
 
-  .clock { font-size: clamp(14px, 2vw, 18px); letter-spacing: .08em; opacity: .75; font-variant-numeric: tabular-nums; }
+  .clock {
+    font-size: clamp(14px, 2vw, 18px);
+    letter-spacing: .08em; opacity: .75;
+    font-variant-numeric: tabular-nums;
+  }
   .fs-btn {
     width: 42px; height: 42px; border-radius: 12px;
     background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
@@ -89,6 +115,9 @@
     #plaza-sub { font-size: 11px; letter-spacing: .01em; }
   }
 
+  /* ==========================
+     유튜브식 브랜드 카드 (썸네일 + 제목만)
+  ========================== */
   #brand-grid {
     flex: 1; min-height: 0; overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -97,57 +126,93 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 22px;
     align-content: start;
-    min-height: 0;
+    min-height: 0;          /* flexbox shrink 허용 */
   }
   @media (max-width: 1280px) { #brand-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
   @media (max-width: 820px)  { #brand-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 18px; } }
   @media (max-width: 480px)  { #brand-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 14px; } }
 
   .brand-card {
-    position: relative; border-radius: 16px; overflow: hidden;
-    background: #14171f; border: 1px solid rgba(255,255,255,.06);
-    width: 100%; min-width: 0; height: 0; padding-top: 56.25%;
+    position: relative;
+    border-radius: 16px; overflow: hidden;
+    background: #14171f;
+    border: 1px solid rgba(255,255,255,.06);
+    width: 100%;
+    min-width: 0;
+    /* padding-top으로 16:9 비율 높이를 강제 — absolute 자식이 있어도 절대 겹치지 않음 */
+    height: 0;
+    padding-top: 56.25%;
     transition: transform .15s ease, border-color .15s ease;
   }
   .brand-card:active { transform: scale(.97); }
   .brand-card:hover { border-color: rgba(165,180,252,.45); }
-  .brand-card .thumb { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; padding: 0; background: #fff; }
+
+  .brand-card .thumb {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    padding: 0;
+    background: #fff;
+  }
   .brand-card .no-thumb {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    padding: 28px; text-align: center;
+    padding: 28px;
+    text-align: center;
     font-size: clamp(30px, 8vw, 72px); font-weight: 800; letter-spacing: .04em;
-    background: linear-gradient(135deg, #2b304a, #1a1e30); color: #c7d2fe;
+    background: linear-gradient(135deg, #2b304a, #1a1e30);
+    color: #c7d2fe;
   }
-  .brand-card .no-thumb.logo-text { background: #fff; color: #111; font-size: clamp(24px, 6vw, 52px); line-height: 1.05; word-break: keep-all; }
+  .brand-card .no-thumb.logo-text {
+    background: #fff;
+    color: #111;
+    font-size: clamp(24px, 6vw, 52px);
+    line-height: 1.05;
+    word-break: keep-all;
+  }
   .brand-card .title-overlay {
     position: absolute; left: 0; right: 0; bottom: 0;
-    padding: 14px 16px;
-    background: rgba(0,0,0,.30);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    padding: 18px 18px 18px;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.88) 100%);
     color: #fff;
   }
-  .brand-card .title-overlay .t-name { font-size: clamp(15px, 2vw, 20px); font-weight: 600; letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .brand-card .title-overlay .t-name {
+    font-size: clamp(17px, 2.2vw, 22px);
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-shadow: 0 2px 10px rgba(0,0,0,.55);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
 
+  /* 종료 제스처용 투명 코너 */
   .corner { position: fixed; width: 90px; height: 90px; z-index: 50; background: transparent; }
   .corner.tl { top: 0; left: 0; } .corner.tr { top: 0; right: 0; }
   .corner.br { bottom: env(safe-area-inset-bottom, 0); right: 0; }
   .corner.bl { bottom: env(safe-area-inset-bottom, 0); left: 0; }
 
+  /* 홈 하단 안내 */
   .home-footer {
-    flex-shrink: 0; text-align: center;
-    padding: 8px 20px; padding-bottom: var(--sab, 8px);
-    background: rgba(0,0,0,.25); border-top: 1px solid rgba(255,255,255,.05);
-    font-size: clamp(12px, 1.6vw, 14px); opacity: .85;
+    flex-shrink: 0;
+    text-align: center;
+    padding: 8px 20px;
+    padding-bottom: var(--sab, 8px);
+    background: rgba(0,0,0,.25);
+    border-top: 1px solid rgba(255,255,255,.05);
+    font-size: clamp(12px, 1.6vw, 14px);
+    opacity: .85;
   }
   .home-footer strong { color: #c7d2fe; font-weight: 600; }
 
+  /* ==========================
+     브랜드 상세 팝업 (블로그 뷰)
+  ========================== */
   #brand-modal {
     position: fixed; inset: 0; z-index: 100;
     background: rgba(5, 7, 12, .82);
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     display: flex; align-items: center; justify-content: center;
-    padding: 20px; animation: fade .25s ease;
+    padding: 20px;
+    animation: fade .25s ease;
   }
   @keyframes fade { from { opacity: 0 } to { opacity: 1 } }
   .modal-card {
@@ -159,30 +224,48 @@
   }
   @media (max-width: 600px) {
     #brand-modal { padding: 0; align-items: stretch; }
-    .modal-card { width: 100%; height: 100dvh; height: -webkit-fill-available; border-radius: 0; }
+    .modal-card {
+      width: 100%;
+      height: 100dvh;
+      height: -webkit-fill-available;
+      border-radius: 0;
+    }
   }
   .modal-head {
-    padding: 16px 20px; padding-top: max(16px, env(safe-area-inset-top, 16px));
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 16px 20px;
+    padding-top: max(16px, env(safe-area-inset-top, 16px));
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
     border-bottom: 1px solid rgba(255,255,255,.06);
-    background: linear-gradient(180deg, rgba(255,255,255,.04), transparent); flex-shrink: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+    flex-shrink: 0;
   }
   .modal-head .title-wrap { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .modal-head .logo-sm {
     width: 44px; height: 44px; border-radius: 10px; background: #fff;
     overflow: hidden; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; color: #111; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    color: #111; font-weight: 800;
   }
   .modal-head .logo-sm img { width: 100%; height: 100%; object-fit: cover; padding: 0; }
-  .modal-head h2 { margin: 0; font-size: clamp(16px, 2.5vw, 22px); letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .modal-head h2 {
+    margin: 0; font-size: clamp(16px, 2.5vw, 22px); letter-spacing: .04em;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .modal-head .cat { font-size: 11px; opacity: .55; letter-spacing: .18em; text-transform: uppercase; }
   .close-btn {
-    background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.1);
-    width: 44px; height: 44px; border-radius: 12px; font-size: 22px; font-weight: 300; flex-shrink: 0;
+    background: rgba(255,255,255,.08); color: #fff;
+    border: 1px solid rgba(255,255,255,.1);
+    width: 44px; height: 44px; border-radius: 12px;
+    font-size: 22px; font-weight: 300; flex-shrink: 0;
   }
   .close-btn:active { background: rgba(255,255,255,.16); }
 
-  .modal-body { overflow-y: auto; padding: 24px 28px 40px; line-height: 1.7; user-select: text; -webkit-user-select: text; }
+  .modal-body {
+    overflow-y: auto; padding: 24px 28px 40px;
+    line-height: 1.7;
+    user-select: text; -webkit-user-select: text;
+  }
   @media (max-width: 600px) { .modal-body { padding: 18px 18px 32px; } }
 
   .post-content { font-size: clamp(15px, 1.7vw, 17px); color: #e7e9ee; }
@@ -191,66 +274,258 @@
   .post-content h3 { font-size: 1.2em; margin: .9em 0 .4em; }
   .post-content p  { margin: 0 0 .9em; }
   .post-content ul, .post-content ol { padding-left: 1.4em; margin: 0 0 .9em; }
-  .post-content blockquote { border-left: 3px solid #6366f1; padding: .3em 1em; margin: 1em 0; opacity: .85; background: rgba(99,102,241,.08); border-radius: 0 8px 8px 0; }
+  .post-content blockquote {
+    border-left: 3px solid #6366f1; padding: .3em 1em; margin: 1em 0;
+    opacity: .85; background: rgba(99,102,241,.08); border-radius: 0 8px 8px 0;
+  }
   .post-content a { color: #a5b4fc; text-decoration: underline; }
-  .post-content img, .post-content video { width: min(100%, 560px); max-width: 100%; height: auto; border-radius: 14px; margin: 16px 0; display: block; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
-  .post-content p > img, .post-content p > video { margin-left: auto; margin-right: auto; }
-  .post-content img[style], .post-content video[style] { width: min(100%, 560px) !important; }
-  .post-content .media-caption { text-align: center; font-size: 13px; opacity: .55; margin: -8px 0 16px; }
-  .content-logo-fallback { width: min(100%, 560px); min-height: 180px; margin: 16px auto; border-radius: 14px; background: #fff; color: #111; display: flex; align-items: center; justify-content: center; padding: 28px; text-align: center; font-size: clamp(28px, 7vw, 58px); font-weight: 800; line-height: 1.05; box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  /* 첨부 미디어: 실제 비율, 모서리 라운드 */
+  .post-content img,
+  .post-content video {
+    width: min(100%, 560px);
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    margin: 16px 0;
+    display: block;
+    background: #000;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
+  /* 기본은 중앙 정렬 (인라인 style이 있으면 그걸 우선 적용) */
+  .post-content p > img,
+  .post-content p > video {
+    margin-left: auto; margin-right: auto;
+  }
+  .post-content img[style],
+  .post-content video[style] {
+    width: min(100%, 560px) !important;
+  }
+  .post-content .media-caption {
+    text-align: center; font-size: 13px; opacity: .55; margin: -8px 0 16px;
+  }
+  .content-logo-fallback {
+    width: min(100%, 560px);
+    min-height: 180px;
+    margin: 16px auto;
+    border-radius: 14px;
+    background: #fff;
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    text-align: center;
+    font-size: clamp(28px, 7vw, 58px);
+    font-weight: 800;
+    line-height: 1.05;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  }
   .post-content hr { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 1.5em 0; }
 
-  .close-big { margin: 28px auto 10px; display: block; padding: 14px 36px; font-size: 15px; font-weight: 600; background: #6366f1; color: #fff; border: none; border-radius: 12px; letter-spacing: .08em; }
+  .close-big {
+    margin: 28px auto 10px; display: block;
+    padding: 14px 36px; font-size: 15px; font-weight: 600;
+    background: #6366f1; color: #fff; border: none; border-radius: 12px;
+    letter-spacing: .08em;
+  }
   .close-big:active { background: #4f46e5; }
 
+  /* ==========================
+     관리자 로그인 / 패널
+  ========================== */
   #admin-login, #admin-panel, #admin-editor-view {
     position: fixed; inset: 0; z-index: 200;
-    background: #0b0d12; display: flex; flex-direction: column;
+    background: #0b0d12;
+    display: flex; flex-direction: column;
     user-select: text; -webkit-user-select: text;
   }
-  #admin-login .admin-header, #admin-panel .admin-header, #admin-editor-view .admin-header { padding-top: 16px; }
-  .admin-header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.08); background: #0f1117; flex-shrink: 0; }
+  #admin-login .admin-header,
+  #admin-panel .admin-header,
+  #admin-editor-view .admin-header {
+    padding-top: 16px;
+  }
+  .admin-header {
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    background: #0f1117; flex-shrink: 0;
+  }
   .admin-header h2 { margin: 0; font-size: 16px; letter-spacing: .08em; }
   .admin-header .actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
-  .login-box { margin: auto; width: min(380px, 92vw); padding: 26px; background: #15171f; border-radius: 18px; border: 1px solid rgba(255,255,255,.08); }
+  .login-box {
+    margin: auto; width: min(380px, 92vw);
+    padding: 26px; background: #15171f; border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.08);
+  }
   .login-box h3 { margin: 0 0 14px; font-size: 18px; }
-  .login-box input { width: 100%; padding: 14px 16px; border-radius: 10px; background: #0b0d12; border: 1px solid rgba(255,255,255,.12); color: #fff; font-size: 16px; }
+  .login-box input {
+    width: 100%; padding: 14px 16px; border-radius: 10px;
+    background: #0b0d12; border: 1px solid rgba(255,255,255,.12);
+    color: #fff; font-size: 16px;
+  }
   .login-box .err { color: #f87171; font-size: 13px; min-height: 18px; margin-top: 8px; }
-  .login-box button { width: 100%; margin-top: 10px; padding: 14px; background: #6366f1; border: none; border-radius: 10px; color: #fff; font-weight: 600; }
+  .login-box button {
+    width: 100%; margin-top: 10px; padding: 14px;
+    background: #6366f1; border: none; border-radius: 10px; color: #fff; font-weight: 600;
+  }
 
-  .admin-body { flex: 1; overflow-y: scroll; padding: 16px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y pinch-zoom; }
-  .admin-board-grid { pointer-events: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .admin-board-card { position: relative; background: #15171f; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; overflow: visible; aspect-ratio: 3/4; cursor: pointer; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: pan-y; transition: transform .15s; }
-  .admin-board-card.edit-mode { touch-action: none; }
-  .admin-board-card .card-inner { width: 100%; height: 100%; border-radius: 14px; overflow: hidden; }
+  .admin-body {
+    flex: 1; overflow-y: scroll; padding: 16px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y pinch-zoom;
+  }
+  /* 관리자 보드 그리드 스크롤 - 터치 영역 전체 */
+  .admin-board-grid {
+    pointer-events: auto;
+  }
+
+  /* 보드 그리드 */
+  .admin-board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .admin-board-card {
+    position: relative;
+    background: #15171f;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    overflow: visible;
+    aspect-ratio: 3/4;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: pan-y;
+    transition: transform .15s;
+  }
+  .admin-board-card.edit-mode {
+    touch-action: none;
+  }
+  .admin-board-card .card-inner {
+    width: 100%; height: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+  }
   .admin-board-card:active { transform: scale(.97); }
-  .admin-board-card .card-thumb { width: 100%; height: 65%; object-fit: cover; display: block; background: #fff; }
-  .admin-board-card .card-thumb-placeholder { width: 100%; height: 65%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: #111; }
-  .admin-board-card .card-info { padding: 8px 10px; }
-  .admin-board-card .card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .admin-board-card .card-cat { font-size: 11px; opacity: .5; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .admin-board-card.edit-mode { animation: wiggle .4s infinite alternate; }
-  .admin-board-card.dragging-over { border: 2px solid #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.4); }
-  @keyframes wiggle { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
-  .admin-board-grid * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-  .card-delete-btn, .card-edit-btn { display: none; position: absolute; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; color: #fff; font-size: 13px; font-weight: 700; align-items: center; justify-content: center; z-index: 10; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.5); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-  .card-delete-btn { top: -8px; left: -8px; background: #ef4444; }
-  .card-edit-btn { top: -8px; right: -8px; background: #6366f1; font-size: 12px; }
-  .edit-mode .card-delete-btn, .edit-mode .card-edit-btn { display: flex; }
+  .admin-board-card .card-thumb {
+    width: 100%; height: 65%;
+    object-fit: cover; display: block;
+    background: #fff;
+  }
+  .admin-board-card .card-thumb-placeholder {
+    width: 100%; height: 65%;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 700; color: #111;
+  }
+  .admin-board-card .card-info {
+    padding: 8px 10px;
+  }
+  .admin-board-card .card-name {
+    font-size: 13px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .admin-board-card .card-cat {
+    font-size: 11px; opacity: .5; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* 편집 모드 */
+  .admin-board-card.edit-mode {
+    animation: wiggle .4s infinite alternate;
+  }
+  .admin-board-card.dragging-over {
+    border: 2px solid #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.4);
+  }
+  @keyframes wiggle {
+    from { transform: rotate(-1.5deg); }
+    to   { transform: rotate(1.5deg); }
+  }
+  /* 텍스트/이미지 선택 방지 */
+  .admin-board-grid * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .card-delete-btn, .card-edit-btn {
+    display: none;
+    position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    color: #fff; font-size: 13px; font-weight: 700;
+    align-items: center; justify-content: center;
+    z-index: 10; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.5);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .card-delete-btn {
+    top: -8px; left: -8px;
+    background: #ef4444;
+  }
+  .card-edit-btn {
+    top: -8px; right: -8px;
+    background: #6366f1;
+    font-size: 12px;
+  }
+  .edit-mode .card-delete-btn,
+  .edit-mode .card-edit-btn { display: flex; }
 
-  #board-context-menu { position: fixed; inset: 0; z-index: 500; }
-  .context-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); }
-  .context-card { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 20px)); transform: translateX(-50%); width: min(320px, 92vw); background: #1e2030; border-radius: 18px; border: 1px solid rgba(255,255,255,.1); overflow: hidden; z-index: 501; animation: slideUp .2s ease; }
+  /* 컨텍스트 메뉴 */
+  #board-context-menu {
+    position: fixed; inset: 0; z-index: 500;
+  }
+  .context-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+  }
+  .context-card {
+    position: fixed; left: 50%;
+    bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    transform: translateX(-50%);
+    width: min(320px, 92vw);
+    background: #1e2030; border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.1);
+    overflow: hidden; z-index: 501;
+    animation: slideUp .2s ease;
+  }
   @keyframes slideUp { from { transform: translateX(-50%) translateY(30px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-  .context-brand-name { padding: 14px 20px 10px; font-size: 13px; font-weight: 700; opacity: .5; text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid rgba(255,255,255,.06); }
-  .context-card button { display: block; width: 100%; padding: 16px 20px; text-align: left; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,.04); color: #e7e9ee; font-size: 16px; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .context-brand-name {
+    padding: 14px 20px 10px;
+    font-size: 13px; font-weight: 700; opacity: .5;
+    text-transform: uppercase; letter-spacing: .08em;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .context-card button {
+    display: block; width: 100%;
+    padding: 16px 20px; text-align: left;
+    background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,.04);
+    color: #e7e9ee; font-size: 16px; font-family: inherit;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
   .context-card button:active { background: rgba(255,255,255,.06); }
   .context-card button.danger { color: #f87171; }
   .context-card button.cancel { color: #a5b4fc; font-weight: 600; border-bottom: none; }
-  .move-hint { text-align: center; padding: 10px; font-size: 13px; opacity: .5; display: none; }
-  .move-hint.visible { display: block; }
 
+  /* 이동 모드 드래그 힌트 */
+  .move-hint {
+    text-align: center; padding: 10px;
+    font-size: 13px; opacity: .5;
+    display: none;
+  }
+  .move-hint.visible { display: block; }
+  .admin-grid {
+    display: grid; grid-template-columns: 320px 1fr; gap: 20px;
+  }
+  @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+  /* 모바일 어드민 버튼 최적화 */
   @media (max-width: 768px) {
     .admin-header { flex-wrap: wrap; padding: 10px 14px; gap: 8px; }
     .admin-header h2 { font-size: 14px; }
@@ -267,97 +542,211 @@
     .admin-body { padding: 12px; }
   }
 
-  .editor { background: #15171f; border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 20px; }
-  .editor .row { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: start; margin-bottom: 14px; }
-  @media (max-width: 700px) { .editor .row { grid-template-columns: 1fr; gap: 6px; } .editor label { padding-top: 0 !important; } }
-  .editor label { font-size: 13px; opacity: .7; padding-top: 10px; }
-  .editor input[type="text"], .editor select { width: 100%; padding: 10px 12px; border-radius: 8px; background: #0b0d12; border: 1px solid rgba(255,255,255,.12); color: #fff; font-size: 14px; font-family: inherit; }
-  .logo-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .logo-pick .preview { width: 64px; height: 64px; border-radius: 10px; background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #111; font-weight: 700; }
-  .logo-pick .preview img { width: 100%; height: 100%; object-fit: cover; padding: 0; }
-  .file-btn { background: #1f2130; color: #c7d2fe; border: 1px solid rgba(165,180,252,.25); padding: 10px 14px; border-radius: 8px; font-size: 13px; display: inline-block; }
-  .thumb-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .thumb-pick .t-preview { width: 160px; aspect-ratio: 16/9; border-radius: 10px; background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #111; font-size: 11px; text-align: center; }
-  .thumb-pick .t-preview img, .thumb-pick .t-preview video { width: 100%; height: 100%; object-fit: cover; }
+  .brand-list {
+    background: #15171f; border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px; padding: 14px; height: fit-content;
+  }
+  .brand-list h4 {
+    margin: 0 0 10px; font-size: 12px; opacity: .6;
+    letter-spacing: .12em; text-transform: uppercase;
+  }
+  .brand-list ul { list-style: none; padding: 0; margin: 0; }
+  .brand-list li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.06);
+    margin-bottom: 8px; background: #0f1117;
+    cursor: grab;
+  }
+  .brand-list li.dragging { opacity: .4; }
+  .brand-list li.selected { border-color: #6366f1; background: #1a1d28; }
+  .brand-list li .logo-xs {
+    width: 32px; height: 32px; border-radius: 6px; background: #fff;
+    overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #111; font-weight: 700; font-size: 12px;
+  }
+  .brand-list li .logo-xs img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+  .brand-list li .nm { flex: 1; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .brand-list li .hdl { opacity: .4; font-size: 18px; }
+  .brand-list .add-btn {
+    width: 100%; margin-top: 8px; padding: 12px;
+    background: #1f2130; color: #c7d2fe; border: 1px dashed rgba(165,180,252,.4);
+    border-radius: 10px; font-weight: 600;
+  }
 
-  .rte-wrap { border: 1px solid rgba(255,255,255,.12); border-radius: 12px; overflow: hidden; background: #0b0d12; display: flex; flex-direction: column; }
-  .rte-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 6px 8px; background: #0f1117; border-bottom: 1px solid rgba(255,255,255,.08); -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-shrink: 0; }
+  .editor {
+    background: #15171f; border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px; padding: 20px;
+  }
+  .editor .row {
+    display: grid; grid-template-columns: 120px 1fr; gap: 12px;
+    align-items: start; margin-bottom: 14px;
+  }
+  @media (max-width: 700px) {
+    .editor .row { grid-template-columns: 1fr; gap: 6px; }
+    .editor label { padding-top: 0 !important; }
+  }
+  .editor label { font-size: 13px; opacity: .7; padding-top: 10px; }
+  .editor input[type="text"], .editor select {
+    width: 100%; padding: 10px 12px; border-radius: 8px;
+    background: #0b0d12; border: 1px solid rgba(255,255,255,.12);
+    color: #fff; font-size: 14px; font-family: inherit;
+  }
+  .logo-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo-pick .preview {
+    width: 64px; height: 64px; border-radius: 10px; background: #fff; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: #111; font-weight: 700;
+  }
+  .logo-pick .preview img { width: 100%; height: 100%; object-fit: cover; padding: 0; }
+
+  .file-btn {
+    background: #1f2130; color: #c7d2fe;
+    border: 1px solid rgba(165,180,252,.25);
+    padding: 10px 14px; border-radius: 8px; font-size: 13px;
+    display: inline-block;
+  }
+
+  .thumb-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .thumb-pick .t-preview {
+    width: 160px; aspect-ratio: 16/9; border-radius: 10px;
+    background: #fff; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: #111; font-size: 11px; text-align: center;
+  }
+  .thumb-pick .t-preview img,
+  .thumb-pick .t-preview video { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ==========================
+     블로그 에디터
+  ========================== */
+  .rte-wrap {
+    border: 1px solid rgba(255,255,255,.12); border-radius: 12px;
+    overflow: hidden; background: #0b0d12;
+    display: flex; flex-direction: column;
+  }
+  .rte-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 3px;
+    padding: 6px 8px; background: #0f1117;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; flex-shrink: 0;
+  }
   .rte-toolbar::-webkit-scrollbar { display: none; }
-  .rte-toolbar button, .rte-toolbar select, .rte-toolbar .file-btn { background: transparent; color: #e7e9ee; border: none; border-radius: 8px; font-size: 15px; padding: 6px 9px; min-height: 38px; min-width: 38px; font-family: inherit; flex-shrink: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
-  .rte-toolbar select { min-width: 70px; font-size: 13px; padding: 4px 6px; background: #1f2130; border: 1px solid rgba(255,255,255,.1); }
+  .rte-toolbar button, .rte-toolbar select, .rte-toolbar .file-btn {
+    background: transparent; color: #e7e9ee;
+    border: none; border-radius: 8px; font-size: 15px;
+    padding: 6px 9px; min-height: 38px; min-width: 38px;
+    font-family: inherit; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .rte-toolbar select {
+    min-width: 70px; font-size: 13px; padding: 4px 6px;
+    background: #1f2130; border: 1px solid rgba(255,255,255,.1);
+  }
   .rte-toolbar button:active, .rte-toolbar .file-btn:active { background: rgba(255,255,255,.1); }
   .rte-toolbar .sep { width: 1px; min-height: 24px; background: rgba(255,255,255,.12); margin: 0 2px; flex-shrink: 0; }
   .rte-upload-btn { font-size: 20px !important; }
-  .rte-toolbar input[type="color"] { width: 32px; height: 32px; padding: 2px; border-radius: 6px; background: #1f2130; border: 1px solid rgba(255,255,255,.1); cursor: pointer; flex-shrink: 0; }
+  .rte-toolbar input[type="color"] {
+    width: 32px; height: 32px; padding: 2px; border-radius: 6px;
+    background: #1f2130; border: 1px solid rgba(255,255,255,.1);
+    cursor: pointer; flex-shrink: 0;
+  }
 
-  .rte-editor { flex: 1; min-height: 200px; max-height: 45vh; overflow-y: auto; padding: 14px 16px; color: #e7e9ee; font-size: 16px; line-height: 1.8; outline: none; user-select: text; -webkit-user-select: text; -webkit-overflow-scrolling: touch; }
-  .rte-editor:empty::before { content: '여기에 브랜드 소개글을 작성하세요. 툴바로 서식을 지정하고, 이미지/영상을 삽입할 수 있습니다.'; color: #6b7280; }
-  .rte-editor img, .rte-editor video { max-width: 100%; height: auto; border-radius: 12px; margin: 14px 0; display: block; background: #000; }
-  .rte-editor p > img, .rte-editor p > video { margin-left: auto; margin-right: auto; }
-  .rte-editor .media-selected { outline: 3px solid #6366f1; outline-offset: 4px; }
+  .rte-editor {
+    flex: 1; min-height: 200px; max-height: 45vh; overflow-y: auto;
+    padding: 14px 16px;
+    color: #e7e9ee;
+    font-size: 16px; line-height: 1.8;
+    outline: none;
+    user-select: text; -webkit-user-select: text;
+    -webkit-overflow-scrolling: touch;
+  }
+  .rte-editor:empty::before {
+    content: '여기에 브랜드 소개글을 작성하세요. 툴바로 서식을 지정하고, 이미지/영상을 삽입할 수 있습니다.';
+    color: #6b7280;
+  }
+  .rte-editor img, .rte-editor video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 14px 0;
+    display: block;
+    background: #000;
+  }
+  /* 기본 중앙 정렬 */
+  .rte-editor p > img, .rte-editor p > video {
+    margin-left: auto; margin-right: auto;
+  }
+  /* 선택된 미디어 표시 */
+  .rte-editor .media-selected {
+    outline: 3px solid #6366f1;
+    outline-offset: 4px;
+  }
   .rte-editor h1 { font-size: 1.6em; margin: .8em 0 .4em; }
   .rte-editor h2 { font-size: 1.35em; margin: .8em 0 .4em; }
   .rte-editor h3 { font-size: 1.15em; margin: .7em 0 .3em; }
-  .rte-editor blockquote { border-left: 3px solid #6366f1; padding-left: 14px; margin: 1em 0; opacity: .9; }
+  .rte-editor blockquote {
+    border-left: 3px solid #6366f1; padding-left: 14px; margin: 1em 0; opacity: .9;
+  }
   .rte-editor a { color: #a5b4fc; text-decoration: underline; }
 
-  .uploading { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; background: rgba(99,102,241,.15); color: #c7d2fe; font-size: 12px; margin-left: 6px; }
-  .uploading::before { content: ''; width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(165,180,252,.4); border-top-color: #c7d2fe; animation: spin .8s linear infinite; }
+  /* 업로드 진행 표시 */
+  .uploading {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 6px;
+    background: rgba(99,102,241,.15); color: #c7d2fe; font-size: 12px;
+    margin-left: 6px;
+  }
+  .uploading::before {
+    content: ''; width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid rgba(165,180,252,.4); border-top-color: #c7d2fe;
+    animation: spin .8s linear infinite;
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .editor-actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.06); }
+  .editor-actions {
+    display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
+    margin-top: 20px; padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
   .btn { padding: 11px 18px; border-radius: 10px; font-weight: 600; border: none; font-size: 14px; }
   .btn-primary { background: #6366f1; color: #fff; }
   .btn-danger  { background: #ef4444; color: #fff; }
   .btn-ghost   { background: transparent; color: #c7d2fe; border: 1px solid rgba(165,180,252,.3); }
   .btn:active { transform: scale(.97); }
 
-  .toast { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); background: #1f2130; color: #fff; padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,.1); z-index: 9999; font-size: 14px; pointer-events: none; opacity: 0; transition: opacity .25s ease, transform .25s ease; max-width: 90vw; text-align: center; }
+  /* 토스트 */
+  .toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%);
+    background: #1f2130; color: #fff; padding: 12px 20px;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,.1);
+    z-index: 9999; font-size: 14px; pointer-events: none;
+    opacity: 0; transition: opacity .25s ease, transform .25s ease;
+    max-width: 90vw; text-align: center;
+  }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
 
-  .exit-prompt { position: fixed; inset: 0; z-index: 500; background: rgba(5,7,12,.9); display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .exit-card { background: #15171f; padding: 30px 34px; border-radius: 18px; border: 1px solid rgba(255,255,255,.08); text-align: center; max-width: 420px; width: 100%; }
+  .exit-prompt {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(5,7,12,.9); display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .exit-card {
+    background: #15171f; padding: 30px 34px; border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.08);
+    text-align: center; max-width: 420px; width: 100%;
+  }
   .exit-card h3 { margin: 0 0 10px; }
   .exit-card p { opacity: .7; margin: 0 0 20px; font-size: 14px; }
   .exit-card .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-
-  #screensaver { position: fixed; inset: 0; background: #000; z-index: 8000; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow: hidden; }
-  #screensaver.ss-active    { opacity: 1; pointer-events: all; }
-  #screensaver.ss-dismissing{ opacity: 0; pointer-events: none; }
-  #ss-headline-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 10; pointer-events: none; }
-  #ss-headline-text { font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; font-size: clamp(64px, 12vw, 150px); color: #fff; line-height: 1.0; text-align: center; letter-spacing: -0.01em; word-break: keep-all; white-space: pre-line; opacity: 0; transform: scale(0.93); transition: opacity 0.7s ease, transform 0.7s ease; text-shadow: 0 0 40px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.25); }
-  #ss-headline-text.ss-visible { opacity: 1; transform: scale(1); }
-  #ss-badges { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  #ss-brand-top, #ss-brand-bot { position: absolute; left: 50%; transform: translateX(-50%); font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-size: 11px; letter-spacing: 0.45em; color: #fff; opacity: 0.13; text-transform: uppercase; white-space: nowrap; z-index: 11; pointer-events: none; padding-left: 0.45em; }
-  #ss-brand-top { top: 26px; }
-  #ss-brand-bot { bottom: 26px; }
-  #ss-touch-hint { position: absolute; bottom: 44px; left: 50%; transform: translateX(-50%); font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-size: 13px; letter-spacing: 0.12em; color: #fff; opacity: 0.55; white-space: nowrap; z-index: 11; pointer-events: none; text-align: center; animation: ss-hint-pulse 3s ease-in-out infinite; }
-  @keyframes ss-hint-pulse { 0%,100%{opacity:0.4;} 50%{opacity:0.7;} }
-  .ss-badge { position: absolute; pointer-events: none; display: flex; align-items: center; justify-content: center; text-align: center; font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif; font-weight: 900; line-height: 1.2; will-change: transform, opacity; animation: ss-float ease-in-out infinite; z-index: 3; transition: opacity 0.8s ease; }
-  .ss-badge.ss-fade-out { opacity: 0 !important; }
-  .ss-badge.ss-fade-in  { opacity: 1; }
-  .ss-badge.circle   { border-radius: 50%; }
-  .ss-badge.pill     { border-radius: 999px; }
-  .ss-badge.rect     { border-radius: 16px; }
-  .ss-badge.tag      { border-radius: 10px 10px 10px 0; }
-  .ss-badge.blob     { border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%; }
-  .ss-badge.stamp    { border-radius: 12px; outline: 3px dashed rgba(0,0,0,0.2); outline-offset: -6px; }
-  .ss-badge.emoji-badge { border-radius: 50%; font-size: inherit !important; }
-  @keyframes ss-float { 0% { transform: var(--ss-rot) translateY(0px); } 50% { transform: var(--ss-rot) translateY(var(--ss-fy,-10px)); } 100% { transform: var(--ss-rot) translateY(0px); } }
 </style>
 
 </head>
 <body>
-
-<!-- ================= 화면보호기 ================= -->
-
-<div id="screensaver">
-  <div id="ss-brand-top">SELECT MARKET</div>
-  <div id="ss-brand-bot">SELECT MARKET</div>
-  <div id="ss-touch-hint">화면을 터치하면 다양한 콘텐츠를 확인할 수 있습니다</div>
-  <div id="ss-badges"></div>
-  <div id="ss-headline-wrap"><div id="ss-headline-text"></div></div>
-</div>
 
 <!-- ================= 홈 ================= -->
 
@@ -373,10 +762,13 @@
       <div class="clock" id="clock">--:--</div>
     </div>
   </header>
+
   <main id="brand-grid"></main>
+
   <div class="home-footer">
-    <strong>궁한 브랜드를 클릭</strong>하시면 관련 브랜드 설명을 확인하실 수 있습니다.
+    <strong>궁금한 브랜드를 클릭</strong>하시면 관련 브랜드 설명을 확인하실 수 있습니다.
   </div>
+
   <div class="corner tl" data-corner="0"></div>
   <div class="corner tr" data-corner="1"></div>
   <div class="corner br" data-corner="2"></div>
@@ -406,25 +798,31 @@
 <div id="admin-login" class="hidden">
   <div class="admin-header">
     <h2>ADMIN · 로그인</h2>
-    <div class="actions"><button class="btn btn-ghost" onclick="closeAdmin()">키오스크로</button></div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="closeAdmin()">키오스크로</button>
+    </div>
   </div>
   <div class="login-box">
     <h3>관리자 비밀번호</h3>
     <input id="admin-pw" type="password" placeholder="비밀번호 입력" autocomplete="off" />
     <div class="err" id="admin-err"></div>
     <button onclick="tryLogin()">로그인</button>
-    <p style="font-size:12px;opacity:.45;margin-top:14px;">첫 실행 시 임시 비밀번호는 <b>admin1234</b>입니다. 로그인 후 변경할 수 있습니다.</p>
+    <p style="font-size:12px;opacity:.45;margin-top:14px;">
+      첫 실행 시 임시 비밀번호는 <b>admin1234</b>입니다. 로그인 후 변경할 수 있습니다.
+    </p>
   </div>
 </div>
 
-<!-- ================= 관리자 패널 ================= -->
+<!-- ================= 관리자 패널 : 보드 목록 ================= -->
 
 <div id="admin-panel" class="hidden">
   <div class="admin-header">
     <h2 id="admin-panel-title">ADMIN · 콘텐츠 관리</h2>
     <div class="actions" id="admin-normal-actions">
       <button class="btn btn-ghost" onclick="exportData()">📤 백업</button>
-      <label class="btn btn-ghost" style="cursor:pointer;">📥 가져오기<input type="file" accept=".json,application/json" style="display:none" onchange="importData(event)" /></label>
+      <label class="btn btn-ghost" style="cursor:pointer;">📥 가져오기
+        <input type="file" accept=".json,application/json" style="display:none" onchange="importData(event)" />
+      </label>
       <button class="btn btn-ghost" onclick="showSettings()">⚙ 설정</button>
       <button class="btn btn-ghost" onclick="closeAdmin()">종료</button>
     </div>
@@ -438,7 +836,7 @@
   </div>
 </div>
 
-<!-- ================= 에디터 ================= -->
+<!-- ================= 관리자 패널 : 에디터 ================= -->
 
 <div id="admin-editor-view" class="hidden">
   <div class="admin-header">
@@ -449,7 +847,9 @@
       <button class="btn btn-ghost" onclick="backToAdminList()">← 목록</button>
     </div>
   </div>
-  <div class="admin-body"><div id="editor-wrap"></div></div>
+  <div class="admin-body">
+    <div id="editor-wrap"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -459,6 +859,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ============================================================
+   Firebase 데이터 레이어 — 클라우드 실시간 동기화
+============================================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyCyiK0cunm9T11sLc2E0trgE-q1RxomhV8",
   authDomain: "grace-aea60.firebaseapp.com",
@@ -467,126 +870,189 @@ const firebaseConfig = {
   messagingSenderId: "990582075084",
   appId: "1:990582075084:web:0a9d55fa409c70c9a19c69"
 };
+
 firebase.initializeApp(firebaseConfig);
 const _fbDb = firebase.firestore();
 const BRANDS_DOC = _fbDb.collection('kiosk').doc('brands');
 
 const DB = {
   SETTINGS_KEY: 'brand_kiosk_settings_v1',
-  DEFAULT_SETTINGS: { password: 'admin1234', title: '셀렉상회 큐레이션', subtitle: '궁금한 브랜드, 스타일링 등 확인해보세요!' },
+  DEFAULT_SETTINGS: {
+    password: 'admin1234',
+    title: '셀렉상회 큐레이션',
+    subtitle: '궁금한 브랜드, 스타일링 등 확인해보세요!'
+  },
+
   async load() {
     try {
       const snap = await BRANDS_DOC.get();
       if (snap.exists && snap.data().list && snap.data().list.length) {
-        const deletedIds = snap.data().deletedIds || [];
-        const merged = mergeBrandCatalog(snap.data().list, deletedIds);
+        const merged = mergeBrandCatalog(snap.data().list);
         if (merged.changed) await this.save(merged.list);
         return merged.list;
       }
       const seed = this._seedData();
       await this.save(seed);
       return seed;
-    } catch (e) { console.error('[DB.load]', e); return this._seedData(); }
+    } catch (e) {
+      console.error('[DB.load] Firebase 실패:', e);
+      return this._seedData();
+    }
   },
   async save(data) {
     try {
-      const deletedIds = await this._getDeletedIds();
-      await BRANDS_DOC.set({ list: data, deletedIds });
+      await BRANDS_DOC.set({ list: data });
       if (window._bc) try { window._bc.postMessage({ type: 'brands-updated' }); } catch {}
       return true;
-    } catch (e) { console.error('[DB.save]', e); return false; }
+    } catch (e) {
+      console.error('[DB.save] Firebase 실패:', e);
+      return false;
+    }
   },
-  async deleteBrandById(id) {
-    try {
-      const snap = await BRANDS_DOC.get();
-      const data = snap.exists ? snap.data() : {};
-      const list = (data.list || []).filter(b => b.id !== id);
-      const deletedIds = [...new Set([...(data.deletedIds || []), id])];
-      await BRANDS_DOC.set({ list, deletedIds });
-      if (window._bc) try { window._bc.postMessage({ type: 'brands-updated' }); } catch {}
-      return true;
-    } catch (e) { console.error('[DB.deleteBrandById]', e); return false; }
+  listenBrands(callback) {
+    return BRANDS_DOC.onSnapshot((snap) => {
+      if (snap.exists && snap.data().list) callback(snap.data().list);
+    });
   },
-  async _getDeletedIds() {
-    try { const snap = await BRANDS_DOC.get(); return snap.exists ? (snap.data().deletedIds || []) : []; } catch { return []; }
-  },
-  listenBrands(callback) { return BRANDS_DOC.onSnapshot((snap) => { if (snap.exists && snap.data().list) callback(snap.data().list); }); },
   loadSettings() {
     const raw = localStorage.getItem(this.SETTINGS_KEY);
     if (!raw) return Object.assign({}, this.DEFAULT_SETTINGS);
     try {
       const saved = Object.assign({}, this.DEFAULT_SETTINGS, JSON.parse(raw));
-      if (['BRAND CURATION','BRAND PLAZA','브랜드 큐레이션'].includes(saved.title)) saved.title = this.DEFAULT_SETTINGS.title;
-      if (['LEVEL 3 · FASHION & LIFESTYLE','셀렉상회 브랜드 큐레이션'].includes(saved.subtitle)) saved.subtitle = this.DEFAULT_SETTINGS.subtitle;
+      if (['BRAND CURATION', 'BRAND PLAZA', '브랜드 큐레이션'].includes(saved.title)) {
+        saved.title = this.DEFAULT_SETTINGS.title;
+      }
+      if (['LEVEL 3 · FASHION & LIFESTYLE', '셀렉상회 브랜드 큐레이션'].includes(saved.subtitle)) {
+        saved.subtitle = this.DEFAULT_SETTINGS.subtitle;
+      }
       localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(saved));
       return saved;
     } catch { return Object.assign({}, this.DEFAULT_SETTINGS); }
   },
   saveSettings(s) { localStorage.setItem(this.SETTINGS_KEY, JSON.stringify(s)); },
-  _seedData() { return DEFAULT_BRAND_CONTENT.map(copyCatalogBrand); }
+
+  _seedData() {
+    return DEFAULT_BRAND_CONTENT.map(copyCatalogBrand);
+  }
 };
 
 function uid() { return 'b_' + Math.random().toString(36).slice(2, 10); }
-
 const DEFAULT_BRAND_CONTENT = [
   { id: 'brand_nike', aliases: ['nike', '나이키'], name: 'NIKE | 나이키', category: 'Sportswear', logo: '', thumbnail: '',
-    contentVersion: 3, contentHtml: `<h2>NIKE | 나이키</h2><h3>1. 브랜드 히스토리</h3><p>나이키는 운동선수의 움직임을 더 좋게 만들겠다는 목표에서 성장한 글로벌 스포츠 브랜드입니다. 러닝화에서 시작해 농구, 축구, 트레이닝, 라이프스타일까지 영역을 넓혔고, 스우시 로고는 지금도 도전과 에너지를 상징합니다.</p><p>나이키의 가치는 단순히 로고가 유명하다는 데 있지 않습니다. 기능적인 소재, 활동성을 고려한 실루엣, 그리고 스포츠가 가진 긍정적인 태도를 일상복으로 가져오는 힘이 핵심입니다.</p><blockquote>나이키를 고른다는 것은 편하게 움직이면서도 스포티한 자신감을 더하는 선택입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>데일리 스포티 룩</b> 로고 티셔츠에 조거 팬츠, 에어 포스나 에어 맥스 계열 스니커즈를 매치하면 가장 안정적인 나이키 스타일이 됩니다.</li><li><b>스트리트 캐주얼 룩</b> 오버핏 후디나 바람막이에 와이드 팬츠를 입고, 신발은 볼륨감 있는 스니커즈로 중심을 잡아 주세요.</li><li><b>원포인트 룩</b> 전체 컬러를 블랙, 화이트, 그레이로 맞춘 뒤 스우시 로고가 보이는 아이템 하나만 넣으면 과하지 않게 브랜드 감도가 살아납니다.</li></ul>` },
-  { id: 'brand_adidas', aliases: ['adidas', '아디다스'], name: 'ADIDAS | 아디다스', category: 'Sportswear', logo: '', thumbnail: '',
-    contentVersion: 4, contentHtml: `<h2>ADIDAS | 아디다스</h2><h3>1. 브랜드 히스토리</h3><p>아디다스는 1949년 독일의 아돌프 다슬러가 창립한 스포츠 브랜드입니다. 세 줄 스트라이프와 트레포일 로고는 세계에서 가장 인지도 높은 스포츠 심볼 중 하나가 되었습니다.</p><p>삼바(Samba), 가젤(Gazelle), 슈퍼스타(Superstar)는 반세기가 지난 지금도 전 세계 패션 씬에서 꾸준히 재해석되고 있습니다.</p><blockquote>아디다스는 스포티하지만 차분하고, 캐주얼하지만 클래식한 균형을 가진 브랜드입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>레트로 스포츠 룩</b> 3선 트랙탑에 와이드 데님이나 트랙 팬츠를 매치하면 아디다스 특유의 레트로 스포츠 감성이 살아납니다.</li><li><b>스니커즈 중심 코디</b> 삼바, 가젤처럼 낮고 슬림한 신발은 슬랙스, 데님, 치노 팬츠 모두와 잘 어울립니다.</li><li><b>컬러 포인트 룩</b> 네이비, 올리브, 버건디 계열 상의에 아디다스 화이트 스니커즈를 더하면 차분하면서도 포인트가 생깁니다.</li></ul>` },
+    contentVersion: 3, contentHtml: `<h2>NIKE | 나이키</h2><h3>1. 브랜드 히스토리</h3><p>나이키는 운동선수의 움직임을 더 좋게 만들겠다는 목표에서 성장한 글로벌 스포츠 브랜드입니다. 러닝화에서 시작해 농구, 축구, 트레이닝, 라이프스타일까지 영역을 넓혔고, 스우시 로고는 지금도 도전과 에너지를 상징합니다.</p><p>나이키의 가치는 단순히 로고가 유명하다는 데 있지 않습니다. 기능적인 소재, 활동성을 고려한 실루엣, 그리고 스포츠가 가진 긍정적인 태도를 일상복으로 가져오는 힘이 핵심입니다. 그래서 나이키는 운동할 때뿐 아니라 평소 옷차림에서도 자연스럽게 활력을 만들어 줍니다.</p><blockquote>나이키를 고른다는 것은 편하게 움직이면서도 스포티한 자신감을 더하는 선택입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>데일리 스포티 룩</b> 로고 티셔츠에 조거 팬츠, 에어 포스나 에어 맥스 계열 스니커즈를 매치하면 가장 안정적인 나이키 스타일이 됩니다.</li><li><b>스트리트 캐주얼 룩</b> 오버핏 후디나 바람막이에 와이드 팬츠를 입고, 신발은 볼륨감 있는 스니커즈로 중심을 잡아 주세요.</li><li><b>깔끔한 원포인트 룩</b> 전체 컬러를 블랙, 화이트, 그레이로 맞춘 뒤 스우시 로고가 보이는 아이템 하나만 넣으면 과하지 않게 브랜드 감도가 살아납니다.</li></ul><p><b>셀렉상회 추천</b> 처음 나이키를 구매한다면 신발이나 후디처럼 활용도가 높은 아이템부터 고르면 좋습니다. 이미 스니커즈가 있다면 상의나 팬츠를 같은 무드로 맞춰 완성도를 높여보세요.</p>` },
+  { id: 'brand_adidas', aliases: ['adidas', '아디다스', '아디아드'], name: 'ADIDAS | 아디다스', category: 'Sportswear', logo: '', thumbnail: '',
+    contentVersion: 3, contentHtml: `<h2>ADIDAS | 아디다스</h2><h3>1. 브랜드 히스토리</h3><p>아디다스는 스포츠 퍼포먼스와 클래식 라이프스타일을 함께 쌓아온 브랜드입니다. 세 줄 스트라이프와 트레포일 로고는 축구, 러닝, 테니스, 트레이닝 문화 속에서 오랫동안 사랑받아 왔습니다.</p><p>아디다스의 매력은 오래된 스포츠 아이템이 지금의 일상복으로도 자연스럽게 이어진다는 점입니다. 삼바, 가젤, 슈퍼스타 같은 스니커즈는 유행을 타기보다 시대마다 다른 방식으로 다시 해석되는 클래식에 가깝습니다.</p><blockquote>아디다스는 스포티하지만 차분하고, 캐주얼하지만 클래식한 균형을 가진 브랜드입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>레트로 스포츠 룩</b> 트랙탑에 와이드 데님 또는 트랙 팬츠를 매치하면 아디다스 특유의 빈티지 스포츠 감성이 잘 살아납니다.</li><li><b>스니커즈 중심 룩</b> 삼바나 가젤처럼 낮고 슬림한 신발은 슬랙스, 데님, 치노 팬츠 모두와 잘 어울립니다.</li><li><b>컬러 포인트 룩</b> 네이비, 그린, 버건디 계열 상의에 화이트 스니커즈를 더하면 과하지 않은 포인트 스타일을 만들 수 있습니다.</li></ul><p><b>셀렉상회 추천</b> 아디다스는 첫 구매 아이템으로 스니커즈가 좋습니다. 이후 트랙 재킷이나 로고 티셔츠를 더하면 브랜드 분위기를 자연스럽게 확장할 수 있습니다.</p>` },
   { id: 'brand_champion', aliases: ['champion', '챔피온'], name: 'CHAMPION | 챔피온', category: 'Casual', logo: '', thumbnail: '',
-    contentVersion: 4, contentHtml: `<h2>CHAMPION | 챔피온</h2><h3>1. 브랜드 히스토리</h3><p>챔피온은 1919년 미국 로체스터에서 시작한 스포츠웨어 브랜드입니다. 초기에는 대학 운동부에 유니폼을 공급하며 성장했고, 지금 우리가 당연하게 입는 맨투맨, 후드티, 스웻팬츠의 원형을 만든 브랜드입니다.</p><p>챔피온의 핵심 아이덴티티는 <b>리버스 위브(Reverse Weave)</b> 기술에서 나옵니다. 원단 방향을 90도 돌려 제직해 세탁 후에도 형태가 거의 변하지 않는 것이 특징입니다.</p><blockquote>챔피온은 매일 입는 기본 옷을 조금 더 탄탄하고 오래 입고 싶은 사람에게 잘 맞습니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>캠퍼스 캐주얼 룩</b> 오트밀이나 그레이 맨투맨에 인디고 데님 팬츠, 화이트 스니커즈를 매치하면 편하고 단정한 분위기가 납니다.</li><li><b>원마일웨어 셋업</b> 같은 컬러의 후디와 조거 팬츠를 세트로 입으면 집 앞 외출부터 가벼운 약속까지 커버할 수 있습니다.</li><li><b>레이어드 룩</b> 맨투맨 안에 화이트 티셔츠를 살짝 내밀고, 코치 재킷이나 바시티 재킷을 위에 걸치면 캠퍼스 레이어드 스타일이 완성됩니다.</li></ul>` },
+    contentVersion: 3, contentHtml: `<h2>CHAMPION | 챔피온</h2><h3>1. 브랜드 히스토리</h3><p>챔피온은 미국 스포츠웨어와 스웨트셔츠 문화를 대표하는 브랜드입니다. 특히 리버스 위브로 알려진 탄탄한 스웨트 아이템은 형태가 쉽게 무너지지 않고 오래 입기 좋아 많은 사람들에게 기본 아이템으로 자리 잡았습니다.</p><p>챔피온의 가치는 편안함과 실용성입니다. 화려하게 꾸미기보다 좋은 맨투맨, 후디, 조거 팬츠처럼 일상에서 자주 손이 가는 옷을 만드는 데 강점이 있습니다. 작은 C 로고는 부담스럽지 않으면서도 브랜드의 클래식한 분위기를 보여줍니다.</p><blockquote>챔피온은 매일 입는 기본 옷을 조금 더 탄탄하고 오래 입고 싶은 사람에게 잘 맞습니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>캠퍼스 캐주얼 룩</b> 오트밀 또는 그레이 맨투맨에 데님 팬츠, 스니커즈를 매치하면 편하면서도 단정한 분위기가 납니다.</li><li><b>원마일웨어 룩</b> 후디와 조거 팬츠를 같은 톤으로 맞추면 집 앞 외출부터 가벼운 약속까지 가능한 셋업 느낌을 만들 수 있습니다.</li><li><b>레이어드 룩</b> 맨투맨 안에 흰 티셔츠를 살짝 보이게 입고, 아우터는 바시티 재킷이나 코치 재킷을 더하면 캐주얼한 완성도가 올라갑니다.</li></ul><p><b>셀렉상회 추천</b> 챔피온은 로고보다 핏과 원단감을 보고 고르면 만족도가 높습니다. 처음에는 그레이, 네이비, 블랙처럼 오래 입기 쉬운 컬러를 추천합니다.</p>` },
   { id: 'brand_puma', aliases: ['puma', '푸마'], name: 'PUMA | 푸마', category: 'Sportswear', logo: '', thumbnail: '',
-    contentVersion: 4, contentHtml: `<h2>PUMA | 푸마</h2><h3>1. 브랜드 히스토리</h3><p>푸마는 1948년 독일에서 루돌프 다슬러가 설립한 스포츠 브랜드입니다. 스웨이드(Suede), 팔레르모(Palermo), RS 시리즈 같은 라이프스타일 스니커즈로 일상 패션에서도 존재감을 드러내고 있습니다.</p><blockquote>푸마는 스포티한 옷차림에 빠른 리듬과 산뜻한 포인트를 더해주는 브랜드입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>컬러 스니커즈 포인트 룩</b> 스웨이드나 팔레르모처럼 컬러감 있는 신발은 흰 티셔츠와 데님만 입어도 충분히 포인트가 됩니다.</li><li><b>스포티 트랙 룩</b> 로고 티셔츠에 나일론 트랙 팬츠나 조거를 매치하면 가볍고 활동적인 스포티 무드가 살아납니다.</li><li><b>무채색+컬러 믹스</b> 상의를 블랙·화이트·그레이로 차분하게 정리하고 신발에만 포인트 컬러를 넣으면 과하지 않으면서 스타일에 생기가 생깁니다.</li></ul>` },
+    contentVersion: 3, contentHtml: `<h2>PUMA | 푸마</h2><h3>1. 브랜드 히스토리</h3><p>푸마는 스피드, 움직임, 경쟁의 이미지를 바탕으로 성장한 스포츠 브랜드입니다. 축구, 육상, 모터스포츠 등 역동적인 분야에서 브랜드 정체성을 쌓았고, 지금은 스니커즈와 라이프스타일 웨어에서도 강한 존재감을 보여줍니다.</p><p>푸마의 장점은 날렵한 실루엣과 경쾌한 컬러감입니다. 다른 스포츠 브랜드보다 조금 더 가볍고 슬림한 느낌을 주는 아이템이 많아, 캐주얼하면서도 둔해 보이지 않는 스타일을 만들기 좋습니다.</p><blockquote>푸마는 스포티한 옷차림에 빠른 리듬과 산뜻한 포인트를 더해주는 브랜드입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>컬러 스니커즈 룩</b> 푸마 스웨이드나 팔레르모처럼 컬러감 있는 신발은 흰 티셔츠와 데님만 입어도 충분한 포인트가 됩니다.</li><li><b>스포티 믹스 룩</b> 로고 티셔츠에 나일론 팬츠나 트랙 팬츠를 매치하면 가볍고 활동적인 인상이 살아납니다.</li><li><b>깔끔한 캐주얼 룩</b> 상의는 무채색으로 정리하고 신발에만 레드, 그린, 블루 포인트를 주면 부담 없이 푸마의 느낌을 즐길 수 있습니다.</li></ul><p><b>셀렉상회 추천</b> 푸마는 신발에서 시작하면 코디가 쉽습니다. 이미 기본 스니커즈가 많다면 컬러 있는 푸마 제품으로 스타일에 변화를 줘보세요.</p>` },
   { id: 'brand_carhartt', aliases: ['carhartt', '칼하트'], name: 'CARHARTT | 칼하트', category: 'Workwear', logo: '', thumbnail: '',
-    contentVersion: 4, contentHtml: `<h2>CARHARTT | 칼하트</h2><h3>1. 브랜드 히스토리</h3><p>칼하트는 1889년 미국 디트로이트에서 해밀턴 칼하트가 철도 노동자를 위한 작업복 회사로 시작했습니다. 두꺼운 덕(duck) 캔버스 소재, 삼중 스티치 봉제, 리벳 보강이라는 세 가지 원칙이 지금도 브랜드의 핵심입니다.</p><p>1990년대 뉴욕 힙합 씬이 칼하트의 견고함과 넉넉한 핏에서 새로운 매력을 발견하면서, 스트리트 패션의 아이콘이 되었습니다.</p><blockquote>칼하트는 튼튼함과 실용성이 그대로 스타일이 되는 브랜드입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>워크웨어 정통 룩</b> 덕 재킷이나 초어 코트에 데님 팬츠, 워크 부츠를 매치하면 칼하트의 가장 정직한 스타일이 완성됩니다.</li><li><b>스트리트 레이어드 룩</b> 칼하트 아우터 안에 후디를 레이어드하고 아래는 와이드 팬츠를 매치하면 현대적인 스트리트 감성이 살아납니다.</li><li><b>워크웨어 믹스 룩</b> 베이지나 브라운 칼하트 재킷을 화이트 티셔츠와 블랙 데님에 걸치면 가벼운 워크웨어 무드를 일상으로 가져올 수 있습니다.</li></ul>` },
+    contentVersion: 3, contentHtml: `<h2>CARHARTT | 칼하트</h2><h3>1. 브랜드 히스토리</h3><p>칼하트는 노동 현장에서 입는 튼튼한 워크웨어를 바탕으로 시작한 브랜드입니다. 두꺼운 캔버스 소재, 견고한 재킷, 실용적인 포켓과 넉넉한 핏이 브랜드의 핵심입니다.</p><p>칼하트의 가치는 멋을 위해 불편함을 감수하는 옷이 아니라, 실제로 오래 입을 수 있는 옷이라는 데 있습니다. 시간이 지나며 생기는 주름과 색 빠짐도 자연스러운 매력이 되어 빈티지, 스트리트, 아웃도어 스타일과 잘 어울립니다.</p><blockquote>칼하트는 튼튼함과 실용성이 그대로 스타일이 되는 브랜드입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>워크웨어 기본 룩</b> 덕 재킷이나 초어 코트에 데님 팬츠, 부츠를 매치하면 칼하트다운 가장 정직한 스타일이 됩니다.</li><li><b>스트리트 레이어드 룩</b> 넉넉한 칼하트 아우터 안에 후디를 입고, 아래는 와이드 팬츠를 매치하면 현대적인 스트리트 감성이 살아납니다.</li><li><b>톤 다운 캐주얼 룩</b> 브라운, 카키, 블랙, 베이지 계열로 색을 맞추면 거친 소재감이 차분하게 정리됩니다.</li></ul><p><b>셀렉상회 추천</b> 칼하트는 아우터나 팬츠처럼 오래 입을 수 있는 큰 아이템을 먼저 고르는 것이 좋습니다. 입을수록 자연스럽게 몸에 맞아가는 느낌을 즐겨보세요.</p>` },
   { id: 'brand_stussy', aliases: ['stussy', '스투시'], name: 'STUSSY | 스투시', category: 'Streetwear', logo: '', thumbnail: '',
-    contentVersion: 4, contentHtml: `<h2>STUSSY | 스투시</h2><h3>1. 브랜드 히스토리</h3><p>스투시는 1980년 미국 캘리포니아 라구나 비치에서 서퍼 숀 스투시가 자신의 서프보드에 그리던 손글씨 서명에서 시작된 브랜드입니다. 서핑, 스케이트, 힙합, 클럽 문화를 가로지르는 스트리트웨어 씬의 선구자입니다.</p><blockquote>스투시는 자유로운 분위기와 서브컬처 감도를 옷으로 표현하는 브랜드입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>그래픽 티셔츠 코디</b> 스투시 로고 티셔츠에 와이드 데님이나 카고 팬츠를 매치하면 가장 쉽게 브랜드 분위기를 낼 수 있습니다.</li><li><b>릴랙스 스트리트 룩</b> 오버핏 후디에 반바지 또는 벌룬 팬츠를 더하고 볼캡을 쓰면 힘을 뺀 스트리트 스타일이 완성됩니다.</li><li><b>블랙&화이트 포인트 룩</b> 전체를 블랙·차콜로 맞추고 화이트 스투시 로고 아이템 하나를 넣으면 깔끔하면서도 존재감이 살아납니다.</li></ul>` },
+    contentVersion: 3, contentHtml: `<h2>STUSSY | 스투시</h2><h3>1. 브랜드 히스토리</h3><p>스투시는 서프 문화에서 시작해 스케이트, 힙합, 클럽 문화와 함께 성장한 스트리트웨어 브랜드입니다. 손글씨처럼 보이는 로고와 그래픽 중심의 디자인은 스투시를 단순한 옷 브랜드가 아니라 하나의 문화 코드로 만들었습니다.</p><p>스투시의 가치는 힘을 많이 주지 않아도 멋이 난다는 점입니다. 여유로운 핏, 그래픽 티셔츠, 후디, 볼캡 같은 아이템으로 편안하지만 확실한 스트리트 무드를 만들 수 있습니다.</p><blockquote>스투시는 자유로운 분위기와 서브컬처 감도를 옷으로 표현하는 브랜드입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>그래픽 티셔츠 룩</b> 스투시 로고 티셔츠에 와이드 데님이나 카고 팬츠를 매치하면 가장 쉽게 브랜드 분위기를 낼 수 있습니다.</li><li><b>릴랙스 스트리트 룩</b> 오버핏 후디에 반바지 또는 벌룬 팬츠를 더하고 볼캡을 쓰면 힘을 뺀 스트리트 스타일이 완성됩니다.</li><li><b>블랙 포인트 룩</b> 전체를 블랙이나 차콜로 맞추고 흰색 로고가 들어간 아이템을 선택하면 깔끔하면서도 존재감이 있습니다.</li></ul><p><b>셀렉상회 추천</b> 스투시는 로고 티셔츠나 후디처럼 한눈에 분위기가 보이는 아이템부터 추천합니다. 평소 옷이 심플하다면 스투시 그래픽이 좋은 포인트가 됩니다.</p>` },
   { id: 'brand_supreme', aliases: ['supreme', '슈프림'], name: 'SUPREME | 슈프림', category: 'Streetwear', logo: '', thumbnail: '',
-    contentVersion: 4, contentHtml: `<h2>SUPREME | 슈프림</h2><h3>1. 브랜드 히스토리</h3><p>슈프림은 1994년 뉴욕 맨해튼에서 제임스 제비아가 오픈한 스케이트 숍에서 출발했습니다. 매주 목요일 한정 수량으로 새 컬렉션을 공개하는 드롭 방식, 빨간 박스 로고, 다양한 브랜드와의 협업이 슈프림을 단순한 의류 브랜드가 아닌 문화 현상으로 만들었습니다.</p><blockquote>슈프림은 한 가지 아이템만으로도 스타일의 중심을 만들 수 있는 브랜드입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>박스 로고 원포인트 룩</b> 슈프림 박스 로고 티나 후디를 중심으로 두고 팬츠·신발은 블랙이나 화이트로 심플하게 맞추면 로고가 가장 잘 살아납니다.</li><li><b>스케이트 스트리트 룩</b> 후디, 루즈한 데님, 볼캡, 청키 스니커즈를 조합하면 뉴욕 스케이트 무드가 나옵니다.</li><li><b>협업 아이템 집중 룩</b> 강한 그래픽이나 협업 제품을 입을 때는 나머지 아이템을 최대한 단순하게 가져가세요.</li></ul>` }
+    contentVersion: 3, contentHtml: `<h2>SUPREME | 슈프림</h2><h3>1. 브랜드 히스토리</h3><p>슈프림은 뉴욕 스케이트 문화에서 출발해 스트리트 패션을 대표하는 브랜드로 성장했습니다. 시즌마다 한정 수량으로 제품을 선보이는 드롭 방식과 강한 로고 아이덴티티, 다양한 협업으로 브랜드 자체가 하나의 문화 현상이 되었습니다.</p><p>슈프림의 가치는 희소성과 메시지입니다. 단순한 로고 티셔츠라도 어떤 시즌, 어떤 그래픽, 어떤 협업인지에 따라 이야기가 달라집니다. 그래서 슈프림은 옷을 입는 동시에 취향과 관심사를 보여주는 브랜드에 가깝습니다.</p><blockquote>슈프림은 한 가지 아이템만으로도 스타일의 중심을 만들 수 있는 브랜드입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>로고 원포인트 룩</b> 박스 로고나 그래픽 티셔츠를 중심으로 두고 팬츠와 신발은 단순하게 맞추면 브랜드 존재감이 가장 잘 살아납니다.</li><li><b>스케이트 스트리트 룩</b> 후디, 루즈한 데님, 캡, 스니커즈를 함께 매치하면 슈프림의 출발점인 스케이트 무드와 잘 맞습니다.</li><li><b>소장 아이템 중심 룩</b> 강한 그래픽이나 협업 제품을 입을 때는 다른 아이템을 과하게 꾸미지 않는 것이 좋습니다. 한 가지 포인트가 룩 전체를 이끌게 해보세요.</li></ul><p><b>셀렉상회 추천</b> 슈프림은 디자인의 의미와 시즌성을 알고 고르면 더 재미있는 브랜드입니다. 마음에 드는 그래픽이나 로고 아이템을 중심으로 본인의 취향을 표현해보세요.</p>` }
 ];
-
 const KOREAN_BRAND_CONTENT = [
   { id: 'brand_musinsa_standard', aliases: ['musinsa standard', '무신사 스탠다드', '무탠다드'], name: 'MUSINSA STANDARD | 무신사 스탠다드', category: 'Modern Basic', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>MUSINSA STANDARD | 무신사 스탠다드</h2><h3>1. 브랜드 히스토리</h3><p>무신사 스탠다드는 2017년 국내 최대 패션 플랫폼 무신사가 직접 론칭한 베이직 캐주얼 브랜드입니다. "좋은 기본템을 합리적인 가격에"라는 명확한 방향성 아래 출발해, 출시 몇 년 만에 무신사 내 최고 매출 브랜드 중 하나로 성장했습니다.</p><blockquote>무신사 스탠다드는 '오늘 바로 입을 수 있는 깔끔한 기본 옷'을 찾는 고객에게 잘 맞습니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>깔끔한 데일리 룩</b> 화이트 티셔츠에 블랙 슬랙스, 흰 스니커즈만으로도 가장 안정적이고 단정한 인상을 만들 수 있습니다.</li><li><b>출근·등교 룩</b> 니트나 옥스퍼드 셔츠에 와이드 슬랙스를 더하면 단정하면서도 답답하지 않은 스타일이 됩니다.</li><li><b>톤온톤 레이어드</b> 무지 티셔츠, 셔츠, 가디건을 비슷한 컬러 계열로 겹쳐 입으면 깔끔하면서도 입체감 있는 코디가 됩니다.</li></ul>` },
+    contentVersion: 1, contentHtml: `<h2>MUSINSA STANDARD | 무신사 스탠다드</h2><h3>1. 브랜드 히스토리</h3><p>무신사 스탠다드는 무신사가 전개하는 베이식 캐주얼 브랜드로, 한국 MZ 고객들이 일상에서 가장 쉽게 접근할 수 있는 기본 옷을 제안합니다. 티셔츠, 슬랙스, 데님, 니트, 아우터처럼 매일 입는 아이템을 합리적인 가격과 단정한 품질로 풀어내는 것이 강점입니다.</p><p>이 브랜드의 가치는 유행을 크게 타지 않는 기본기입니다. 과한 로고나 장식보다 핏, 컬러, 소재의 안정감을 중요하게 보기 때문에 처음 옷장을 정리하거나 기본템을 다시 맞추려는 고객에게 좋습니다.</p><blockquote>무신사 스탠다드는 '오늘 바로 입을 수 있는 깔끔한 기본 옷'을 찾는 고객에게 잘 맞습니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>깔끔한 데일리 룩</b> 화이트 티셔츠에 블랙 슬랙스, 미니멀 스니커즈를 매치하면 가장 안정적인 기본 코디가 됩니다.</li><li><b>출근/등교 룩</b> 니트나 셔츠에 와이드 슬랙스를 더하면 단정하면서도 답답하지 않은 스타일이 됩니다.</li><li><b>레이어드 기본 룩</b> 무지 티셔츠, 셔츠, 가디건을 톤온톤으로 쌓으면 누구나 입기 쉬운 깨끗한 인상이 만들어집니다.</li></ul><p><b>셀렉상회 추천</b> 처음 방문한 고객에게는 무채색 티셔츠, 슬랙스, 니트처럼 활용도 높은 아이템을 추천하기 좋습니다.</p>` },
   { id: 'brand_matin_kim', aliases: ['matin kim', '마뗑킴', '마틴킴'], name: 'MATIN KIM | 마뗑킴', category: 'Contemporary', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>MATIN KIM | 마뗑킴</h2><h3>1. 브랜드 히스토리</h3><p>마뗑킴은 2018년 디자이너 김다인이 론칭한 서울 기반 컨템포러리 브랜드입니다. 로고 플레이와 메탈 디테일이 돋보이는 가방으로 빠르게 주목받았으며, 이후 의류·액세서리 전 카테고리로 확장하며 국내외 팬덤을 형성했습니다.</p><blockquote>마뗑킴은 심플한 옷차림에 '요즘 서울 감도'를 더하고 싶은 고객에게 어울립니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>도시 캐주얼 룩</b> 마뗑킴 로고 티셔츠나 크롭 상의에 와이드 데님, 숄더백을 더하면 서울의 젊은 감도가 자연스럽게 납니다.</li><li><b>꾸안꾸 데일리 룩</b> 크롭 니트나 셔츠에 슬랙스를 매치하고 마뗑킴 미니백 하나를 포인트로 넣으면 꾸민 듯 안 꾸민 룩이 완성됩니다.</li><li><b>액세서리 중심 룩</b> 옷은 심플한 기본 아이템으로 입고 마뗑킴 가방이나 지갑으로 브랜드 감도를 표현하는 방식도 좋습니다.</li></ul>` },
+    contentVersion: 1, contentHtml: `<h2>MATIN KIM | 마뗑킴</h2><h3>1. 브랜드 히스토리</h3><p>마뗑킴은 서울의 젊은 감도를 대표하는 컨템포러리 브랜드로, 로고 플레이와 가방, 지갑, 티셔츠, 아우터 등 일상 아이템을 트렌디하게 풀어내며 빠르게 인지도를 높였습니다.</p><p>마뗑킴의 매력은 평범한 캐주얼에 도시적인 포인트를 더하는 방식입니다. 과하게 꾸민 느낌보다 무심하게 멋을 낸 듯한 분위기가 강하고, 작은 로고나 메탈 디테일이 룩의 초점을 만들어 줍니다.</p><blockquote>마뗑킴은 심플한 옷차림에 '요즘 서울 감도'를 더하고 싶은 고객에게 어울립니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>도시 캐주얼 룩</b> 로고 티셔츠에 와이드 데님, 숄더백을 매치하면 가장 쉬운 마뗑킴 스타일이 됩니다.</li><li><b>꾸안꾸 외출 룩</b> 크롭 니트나 셔츠에 슬랙스, 미니백을 더하면 부담스럽지 않은 트렌디함이 살아납니다.</li><li><b>포인트 액세서리 룩</b> 옷은 심플하게 입고 가방이나 지갑 같은 아이템으로 브랜드 감도를 보여주는 방식도 좋습니다.</li></ul><p><b>셀렉상회 추천</b> 평소 옷이 단순한 고객에게는 로고 티셔츠나 가방처럼 포인트가 확실한 아이템부터 추천해보세요.</p>` },
   { id: 'brand_mardi_mercredi', aliases: ['mardi mercredi', '마르디 메크르디', '마르디'], name: 'MARDI MERCREDI | 마르디 메크르디', category: 'Casual Chic', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>MARDI MERCREDI | 마르디 메크르디</h2><h3>1. 브랜드 히스토리</h3><p>마르디 메크르디(프랑스어로 '화요일 수요일')는 2019년 론칭된 한국 캐주얼 브랜드입니다. 플라워 그래픽 스웨트셔츠 하나로 폭발적인 반응을 얻으며 빠르게 성장했고, 지금은 '플라워 브랜드'로 통할 만큼 확실한 시그니처를 가지게 되었습니다.</p><blockquote>마르디 메크르디는 편안하지만 사랑스럽고, 캐주얼하지만 사진에 잘 남는 브랜드입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>플라워 스웨트 시그니처 룩</b> 플라워 그래픽 스웨트셔츠에 연청 데님을 매치하면 가장 대표적인 마르디 스타일이 됩니다.</li><li><b>페미닌 캐주얼 룩</b> 로고 티셔츠에 롱스커트나 플리츠 스커트, 플랫슈즈를 더하면 부드럽고 여성스러운 데일리룩이 됩니다.</li><li><b>시밀러룩·커플룩</b> 같은 그래픽을 컬러만 다르게 선택하면 부담 없는 시밀러룩으로도 활용할 수 있습니다.</li></ul>` },
+    contentVersion: 1, contentHtml: `<h2>MARDI MERCREDI | 마르디 메크르디</h2><h3>1. 브랜드 히스토리</h3><p>마르디 메크르디는 플라워 그래픽과 편안한 스웨트 아이템으로 많은 사랑을 받은 한국 캐주얼 브랜드입니다. 프렌치 무드와 한국적인 데일리 감성이 섞여 있어, 꾸민 듯하지만 과하지 않은 분위기를 만들기 좋습니다.</p><p>이 브랜드의 가치는 알아보기 쉬운 시그니처와 편안함입니다. 꽃 그래픽 스웨트셔츠, 티셔츠, 니트는 하나만 입어도 부드러운 포인트가 되고, 데님이나 스커트와도 쉽게 어울립니다.</p><blockquote>마르디 메크르디는 편안하지만 사랑스럽고, 캐주얼하지만 사진에 잘 남는 브랜드입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>플라워 스웨트 룩</b> 시그니처 그래픽 스웨트셔츠에 연청 데님을 매치하면 가장 대표적인 마르디 스타일이 됩니다.</li><li><b>페미닌 캐주얼 룩</b> 로고 티셔츠에 롱스커트나 플랫슈즈를 더하면 부드럽고 여성스러운 데일리룩이 됩니다.</li><li><b>커플/친구 룩</b> 같은 그래픽을 컬러만 다르게 입으면 부담 없는 시밀러룩으로도 좋습니다.</li></ul><p><b>셀렉상회 추천</b> 선물용이나 첫 구매용으로는 브랜드가 한눈에 보이는 플라워 그래픽 제품이 좋습니다.</p>` },
   { id: 'brand_ader_error', aliases: ['ader error', '아더에러', '아더'], name: 'ADER ERROR | 아더에러', category: 'Concept Streetwear', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>ADER ERROR | 아더에러</h2><h3>1. 브랜드 히스토리</h3><p>아더에러는 2014년 서울에서 익명의 크리에이티브 집단이 설립한 컨셉추얼 스트리트 브랜드입니다. 오버사이즈 실루엣, 엉뚱한 로고 배치, 예상을 벗어나는 컬러 조합이 아더에러만의 시각 언어를 만들어 냅니다.</p><blockquote>아더에러는 평범한 코디보다 '내가 좋아하는 감각'을 보여주고 싶은 고객에게 어울립니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>오버핏 스트리트 룩</b> 박시한 아더에러 티셔츠나 후디에 와이드 팬츠를 매치하면 브랜드 특유의 실루엣이 살아납니다.</li><li><b>블루 포인트 룩</b> 아더에러의 대표 색상인 블루 계열 아이템을 모자, 가방, 상의 중 하나에만 넣어도 확실한 포인트가 됩니다.</li><li><b>원 포인트 집중 룩</b> 전체를 블랙이나 그레이로 정리하고 아더에러 그래픽 아이템 하나를 중심에 두면 브랜드 무드가 가장 잘 보입니다.</li></ul>` },
-  { id: 'brand_thisisneverthat', aliases: ['thisisneverthat', '디스이즈네버댓'], name: 'thisisneverthat | 디스이즈네버댓', category: 'Streetwear', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>thisisneverthat | 디스이즈네버댓</h2><h3>1. 브랜드 히스토리</h3><p>디스이즈네버댓은 2010년 서울에서 시작한 스트리트웨어 브랜드로, 한국 스트리트 씬의 성장과 함께 국내외에서 꾸준히 주목받아왔습니다. 90년대 스포츠웨어·아웃도어·밀리터리 감성의 현대적 재해석이 핵심 아이덴티티입니다.</p><blockquote>디스이즈네버댓은 편한데 멋있고, 익숙한데 촌스럽지 않은 서울 스트리트웨어입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>서울 스트리트 룩</b> T-Logo 후디나 그래픽 티셔츠에 카고 팬츠, 볼캡을 매치하면 가장 자연스럽게 브랜드 무드가 납니다.</li><li><b>나일론 아웃도어 룩</b> 나일론 바람막이나 나일론 팬츠를 활용하면 가볍고 활동적인 아웃도어 무드가 살아납니다.</li><li><b>데일리 그래픽 룩</b> 그래픽 티셔츠에 슬림 데님과 청키 스니커즈를 더하면 누구나 입기 쉬운 스트리트 캐주얼이 됩니다.</li></ul>` },
+    contentVersion: 1, contentHtml: `<h2>ADER ERROR | 아더에러</h2><h3>1. 브랜드 히스토리</h3><p>아더에러는 실험적인 그래픽, 오버사이즈 실루엣, 독특한 컬러 조합으로 한국 스트리트 패션을 세계에 알린 브랜드 중 하나입니다. 단순히 예쁜 옷보다 브랜드가 가진 콘셉트와 위트를 옷에 담는 방식이 특징입니다.</p><p>아더에러의 가치는 개성입니다. 일반적인 기본템도 비율, 봉제선, 로고 위치, 컬러를 다르게 해석해 입는 사람의 취향을 분명하게 보여줍니다.</p><blockquote>아더에러는 평범한 코디보다 '내가 좋아하는 감각'을 보여주고 싶은 고객에게 어울립니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>오버핏 스트리트 룩</b> 박시한 티셔츠나 후디에 와이드 팬츠를 매치하면 브랜드 특유의 실루엣이 살아납니다.</li><li><b>블루 포인트 룩</b> 아더에러의 대표적인 블루 계열 포인트를 모자, 가방, 그래픽으로 넣으면 확실한 인상이 납니다.</li><li><b>심플+한 점 포인트 룩</b> 전체는 블랙이나 그레이로 정리하고 아더에러 아이템 하나만 크게 보여주는 방식이 좋습니다.</li></ul><p><b>셀렉상회 추천</b> 개성을 좋아하는 고객에게는 로고 티셔츠, 후디, 액세서리처럼 브랜드 무드가 즉시 보이는 아이템을 추천하세요.</p>` },
+  { id: 'brand_thisisneverthat', aliases: ['thisisneverthat', '디스이즈네버댓', '디네댓'], name: 'thisisneverthat | 디스이즈네버댓', category: 'Streetwear', logo: '', thumbnail: '',
+    contentVersion: 1, contentHtml: `<h2>thisisneverthat | 디스이즈네버댓</h2><h3>1. 브랜드 히스토리</h3><p>디스이즈네버댓은 서울 스트리트웨어를 대표하는 브랜드로, 90년대 스포츠웨어와 스케이트, 아웃도어, 밀리터리 감성을 현대적으로 풀어냅니다. 편하게 입을 수 있지만 브랜드만의 무드가 분명해 국내외 스트리트 팬들에게 꾸준히 사랑받고 있습니다.</p><p>이 브랜드의 가치는 자연스러운 멋입니다. 화려하게 꾸미기보다 로고 후디, 그래픽 티셔츠, 나일론 아우터처럼 일상에서 쉽게 입을 수 있는 옷으로 스트리트 감도를 보여줍니다.</p><blockquote>디스이즈네버댓은 편한데 멋있고, 익숙한데 촌스럽지 않은 스트리트웨어입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>서울 스트리트 룩</b> 로고 후디에 카고 팬츠, 볼캡을 매치하면 가장 자연스럽게 브랜드 무드가 납니다.</li><li><b>나일론 아웃도어 룩</b> 바람막이나 나일론 팬츠를 활용하면 가볍고 활동적인 느낌을 줄 수 있습니다.</li><li><b>데일리 그래픽 룩</b> 그래픽 티셔츠에 데님과 스니커즈를 더하면 누구나 입기 쉬운 스트리트 캐주얼이 됩니다.</li></ul><p><b>셀렉상회 추천</b> 스트리트 브랜드를 처음 접하는 고객에게도 후디나 티셔츠부터 쉽게 제안하기 좋은 브랜드입니다.</p>` },
   { id: 'brand_covernat', aliases: ['covernat', '커버낫'], name: 'COVERNAT | 커버낫', category: 'Heritage Casual', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>COVERNAT | 커버낫</h2><h3>1. 브랜드 히스토리</h3><p>커버낫은 2012년 서울에서 시작된 헤리티지 캐주얼 브랜드입니다. 아메리칸 빈티지, 밀리터리, 아웃도어 무드를 한국인의 일상에 맞게 재해석하는 것이 브랜드의 출발점입니다.</p><blockquote>커버낫은 옷장을 든든하게 채워주는 한국식 헤리티지 캐주얼입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>아메카지 기본 룩</b> 커버낫 플래닛 로고 티셔츠에 치노 팬츠, 화이트 스니커즈를 매치하면 깔끔한 데일리 코디가 됩니다.</li><li><b>헤리티지 레이어드 룩</b> 셔츠, 워크 재킷, 카고 팬츠를 조합하면 커버낫의 헤리티지 아메카지 감성이 잘 살아납니다.</li><li><b>간절기 아우터 룩</b> 바람막이, 코치 재킷, 셔츠 재킷을 기본 티셔츠 위에 가볍게 걸치면 활용도가 높습니다.</li></ul>` },
+    contentVersion: 1, contentHtml: `<h2>COVERNAT | 커버낫</h2><h3>1. 브랜드 히스토리</h3><p>커버낫은 아메리칸 캐주얼과 밀리터리, 아웃도어 무드를 한국식 데일리웨어로 풀어낸 브랜드입니다. 티셔츠, 맨투맨, 셔츠, 아우터처럼 기본 아이템을 중심으로 전개하며 부담 없는 가격대와 높은 활용도로 인기가 있습니다.</p><p>커버낫의 가치는 실용적인 캐주얼입니다. 너무 튀지 않지만 옷의 형태와 소재감이 안정적이어서, 데일리로 자주 입기 좋은 옷을 찾는 고객에게 잘 맞습니다.</p><blockquote>커버낫은 옷장을 든든하게 채워주는 한국식 헤리티지 캐주얼입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>베이식 캐주얼 룩</b> 로고 티셔츠에 치노 팬츠나 데님을 매치하면 깔끔한 데일리룩이 됩니다.</li><li><b>아메카지 무드</b> 셔츠, 카고 팬츠, 워크 재킷을 조합하면 커버낫의 헤리티지 감성이 잘 살아납니다.</li><li><b>간절기 아우터 룩</b> 바람막이, 코치 재킷, 셔츠 재킷을 티셔츠 위에 가볍게 걸치면 활용도가 높습니다.</li></ul><p><b>셀렉상회 추천</b> 매일 입을 옷을 찾는 고객에게는 로고 티셔츠와 아우터류를 먼저 보여주면 좋습니다.</p>` },
   { id: 'brand_nerdy', aliases: ['nerdy', '널디'], name: 'NERDY | 널디', category: 'Athleisure', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>NERDY | 널디</h2><h3>1. 브랜드 히스토리</h3><p>널디는 2015년 서울에서 론칭된 K-팝 감성의 애슬레저 브랜드입니다. 레트로 스포츠웨어에서 영감받은 트랙수트, 강렬한 컬러 블록, 보라색·파스텔 계열의 대담한 컬러 팔레트로 빠르게 국내외 팬덤을 형성했습니다.</p><blockquote>널디는 편안한 스포츠웨어에 밝은 개성을 더하고 싶은 고객에게 어울립니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>트랙수트 셋업 룩</b> 상하의 세트로 맞추는 것이 널디의 정석입니다. 같은 컬러 셋업에 화이트 스니커즈를 더하면 깔끔하고 에너지 있는 스타일이 완성됩니다.</li><li><b>컬러 포인트 믹스</b> 보라색·파스텔 톤 상의를 블랙 팬츠와 매치하면 컬러의 부담을 줄이면서 포인트가 살아납니다.</li><li><b>캐주얼 믹스 룩</b> 트랙 재킷을 데님이나 와이드 팬츠와 조합하면 운동복 느낌을 줄이고 일상적으로 입기 편한 스타일이 됩니다.</li></ul>` },
+    contentVersion: 1, contentHtml: `<h2>NERDY | 널디</h2><h3>1. 브랜드 히스토리</h3><p>널디는 트랙수트와 강한 컬러감으로 알려진 한국 애슬레저 브랜드입니다. 레트로 스포츠웨어를 바탕으로 보라색, 파스텔, 컬러 블록 같은 눈에 띄는 요소를 활용해 K-pop 스타일과도 잘 연결됩니다.</p><p>널디의 가치는 에너지와 개성입니다. 편하게 입는 트레이닝복도 컬러와 실루엣을 통해 스타일의 중심이 될 수 있다는 것을 보여줍니다.</p><blockquote>널디는 편안한 스포츠웨어에 밝은 개성을 더하고 싶은 고객에게 어울립니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>트랙수트 셋업 룩</b> 상하의를 세트로 맞추면 가장 쉽게 널디다운 에너지 있는 스타일을 만들 수 있습니다.</li><li><b>컬러 포인트 룩</b> 보라색이나 파스텔 톤 상의를 블랙 팬츠와 매치하면 부담을 줄이면서 포인트가 살아납니다.</li><li><b>캐주얼 믹스 룩</b> 트랙 재킷을 데님이나 스커트와 섞으면 운동복 느낌을 줄이고 데일리하게 입을 수 있습니다.</li></ul><p><b>셀렉상회 추천</b> 평소 무채색 옷이 많은 고객에게는 널디 아이템 하나로 분위기를 바꾸는 코디를 제안해보세요.</p>` },
   { id: 'brand_gentle_monster', aliases: ['gentle monster', '젠틀몬스터'], name: 'GENTLE MONSTER | 젠틀몬스터', category: 'Eyewear', logo: '', thumbnail: '',
-    contentVersion: 2, contentHtml: `<h2>GENTLE MONSTER | 젠틀몬스터</h2><h3>1. 브랜드 히스토리</h3><p>젠틀몬스터는 2011년 서울에서 론칭된 한국 대표 아이웨어 브랜드입니다. 매장 자체를 하나의 아트 인스톨레이션처럼 연출하는 것이 젠틀몬스터의 가장 큰 차별점입니다. 독특한 프레임 비율, 아시아인의 안면 구조를 고려한 피팅이 특징입니다.</p><blockquote>젠틀몬스터는 옷보다 작은 아이템으로 큰 변화를 만들고 싶은 고객에게 좋은 선택입니다.</blockquote><h3>2. 스타일링 코디 추천</h3><ul><li><b>미니멀 시크 룩</b> 블랙 재킷이나 셔츠에 젠틀몬스터 선글라스를 더하면 코디 전체가 한 단계 정돈된 느낌을 줍니다.</li><li><b>데일리 포인트 룩</b> 심플한 티셔츠와 데님에도 프레임이 개성 있는 안경 하나를 더하면 훨씬 스타일리시한 인상이 납니다.</li><li><b>여행·외출 사진 룩</b> 볼드한 선글라스는 사진에 잘 남고, 평범한 코디를 스타일링한 것처럼 보이게 합니다.</li></ul>` }
+    contentVersion: 1, contentHtml: `<h2>GENTLE MONSTER | 젠틀몬스터</h2><h3>1. 브랜드 히스토리</h3><p>젠틀몬스터는 한국을 대표하는 아이웨어 브랜드로, 안경과 선글라스를 단순한 액세서리가 아니라 공간, 전시, 패션 경험과 연결해 보여준 브랜드입니다. 독특한 매장 연출과 감각적인 프레임으로 국내외에서 강한 인지도를 얻었습니다.</p><p>젠틀몬스터의 가치는 얼굴의 분위기를 바꾸는 힘입니다. 옷차림이 단순해도 안경이나 선글라스 하나로 인상이 선명해지고, 룩 전체가 더 완성되어 보입니다.</p><blockquote>젠틀몬스터는 옷보다 작은 아이템으로 큰 변화를 만들고 싶은 고객에게 좋은 선택입니다.</blockquote><h3>2. 브랜드 스타일링 코디 추천</h3><ul><li><b>미니멀 시크 룩</b> 블랙 재킷이나 셔츠에 선글라스를 더하면 세련된 도시적인 분위기가 납니다.</li><li><b>데일리 포인트 룩</b> 심플한 티셔츠와 데님에도 안경 프레임 하나를 더하면 훨씬 정돈된 인상을 줄 수 있습니다.</li><li><b>여행/외출 룩</b> 볼드한 선글라스는 사진에 잘 남고, 평범한 코디를 스타일링한 것처럼 보이게 합니다.</li></ul><p><b>셀렉상회 추천</b> 옷은 이미 갖춰진 고객에게는 젠틀몬스터 같은 아이웨어를 스타일의 마무리로 제안해보세요.</p>` }
 ];
-
 DEFAULT_BRAND_CONTENT.push(...KOREAN_BRAND_CONTENT);
-
 const LOGO_ASSET_VERSION = '20260502-wiki-logos';
-function logoAsset(path) { return `${path}?v=${LOGO_ASSET_VERSION}`; }
-
+function logoAsset(path) {
+  return `${path}?v=${LOGO_ASSET_VERSION}`;
+}
 const BRAND_MEDIA = {
-  brand_nike:             { logo: logoAsset('assets/logos/nike.svg'),             image: logoAsset('assets/logos/nike.svg') },
-  brand_adidas:           { logo: logoAsset('assets/logos/adidas.svg'),           image: logoAsset('assets/logos/adidas.svg') },
-  brand_champion:         { logo: logoAsset('assets/logos/champion.svg'),         image: logoAsset('assets/logos/champion.svg') },
-  brand_puma:             { logo: logoAsset('assets/logos/puma.svg'),             image: logoAsset('assets/logos/puma.svg') },
-  brand_carhartt:         { logo: logoAsset('assets/logos/carhartt.svg'),         image: logoAsset('assets/logos/carhartt.svg') },
-  brand_stussy:           { logo: logoAsset('assets/logos/stussy.svg'),           image: logoAsset('assets/logos/stussy.svg') },
-  brand_supreme:          { logo: logoAsset('assets/logos/supreme.svg'),          image: logoAsset('assets/logos/supreme.svg') },
-  brand_musinsa_standard: { logo: logoAsset('assets/logos/musinsa-standard.svg'), image: logoAsset('assets/logos/musinsa-standard.svg') },
-  brand_matin_kim:        { logo: logoAsset('assets/logos/matin-kim.svg'),        image: logoAsset('assets/logos/matin-kim.svg') },
-  brand_mardi_mercredi:   { logo: logoAsset('assets/logos/mardi-mercredi.svg'),   image: logoAsset('assets/logos/mardi-mercredi.svg') },
-  brand_ader_error:       { logo: logoAsset('assets/logos/ader-error.svg'),       image: logoAsset('assets/logos/ader-error.svg') },
-  brand_thisisneverthat:  { logo: logoAsset('assets/logos/thisisneverthat.svg'),  image: logoAsset('assets/logos/thisisneverthat.svg') },
-  brand_covernat:         { logo: logoAsset('assets/logos/covernat.svg'),         image: logoAsset('assets/logos/covernat.svg') },
-  brand_nerdy:            { logo: logoAsset('assets/logos/nerdy.svg'),            image: logoAsset('assets/logos/nerdy.svg') },
-  brand_gentle_monster:   { logo: logoAsset('assets/logos/gentle-monster.svg'),   image: logoAsset('assets/logos/gentle-monster.svg') }
+  brand_nike: {
+    logo: logoAsset('assets/logos/nike.svg'),
+    image: logoAsset('assets/logos/nike.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:Nike_shoes.jpg'
+  },
+  brand_adidas: {
+    logo: logoAsset('assets/logos/adidas.svg'),
+    image: logoAsset('assets/logos/adidas.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:An_Adidas_shoe.jpg'
+  },
+  brand_champion: {
+    logo: logoAsset('assets/logos/champion.svg'),
+    image: logoAsset('assets/logos/champion.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:ChampionTrainers.jpg'
+  },
+  brand_puma: {
+    logo: logoAsset('assets/logos/puma.svg'),
+    image: logoAsset('assets/logos/puma.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:Puma_shoes.jpg'
+  },
+  brand_carhartt: {
+    logo: logoAsset('assets/logos/carhartt.svg'),
+    image: logoAsset('assets/logos/carhartt.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:Carhartt_Hooded_Jacket_(9808828856).jpg'
+  },
+  brand_stussy: {
+    logo: logoAsset('assets/logos/stussy.svg'),
+    image: logoAsset('assets/logos/stussy.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:%E3%82%B9%E3%83%86%E3%83%A5%E3%83%BC%E3%82%B7%E3%83%BC.jpg'
+  },
+  brand_supreme: {
+    logo: logoAsset('assets/logos/supreme.svg'),
+    image: logoAsset('assets/logos/supreme.svg'),
+    source: 'https://commons.wikimedia.org/wiki/File:Supreme_store_in_Tokyo.jpg'
+  },
+  brand_musinsa_standard: {
+    logo: logoAsset('assets/logos/musinsa-standard.svg'),
+    image: logoAsset('assets/logos/musinsa-standard.svg'),
+    source: ''
+  },
+  brand_matin_kim: {
+    logo: logoAsset('assets/logos/matin-kim.svg'),
+    image: logoAsset('assets/logos/matin-kim.svg'),
+    source: ''
+  },
+  brand_mardi_mercredi: {
+    logo: logoAsset('assets/logos/mardi-mercredi.svg'),
+    image: logoAsset('assets/logos/mardi-mercredi.svg'),
+    source: ''
+  },
+  brand_ader_error: {
+    logo: logoAsset('assets/logos/ader-error.svg'),
+    image: logoAsset('assets/logos/ader-error.svg'),
+    source: ''
+  },
+  brand_thisisneverthat: {
+    logo: logoAsset('assets/logos/thisisneverthat.svg'),
+    image: logoAsset('assets/logos/thisisneverthat.svg'),
+    source: ''
+  },
+  brand_covernat: {
+    logo: logoAsset('assets/logos/covernat.svg'),
+    image: logoAsset('assets/logos/covernat.svg'),
+    source: ''
+  },
+  brand_nerdy: {
+    logo: logoAsset('assets/logos/nerdy.svg'),
+    image: logoAsset('assets/logos/nerdy.svg'),
+    source: ''
+  },
+  brand_gentle_monster: {
+    logo: logoAsset('assets/logos/gentle-monster.svg'),
+    image: logoAsset('assets/logos/gentle-monster.svg'),
+    source: ''
+  }
 };
-
 DEFAULT_BRAND_CONTENT.forEach(brand => {
   const media = BRAND_MEDIA[brand.id];
   if (!media) return;
@@ -595,64 +1061,139 @@ DEFAULT_BRAND_CONTENT.forEach(brand => {
   brand.thumbnail = '';
   brand.contentHtml = brand.contentHtml.replace('</h2>', `</h2><p><img src="${media.image}" alt="${brand.name} 브랜드 로고"></p><p class="media-caption">브랜드 로고</p>`);
 });
-
-function copyCatalogBrand(b) { return { id: b.id || uid(), name: b.name, category: b.category || '', logo: b.logo || '', thumbnail: b.thumbnail || '', contentHtml: b.contentHtml || '', contentVersion: b.contentVersion || 1 }; }
-function normalizeBrandName(name) { return String(name || '').toLowerCase().replace(/[^a-z0-9가-힣]/g, ''); }
-function isEmptyContent(html) { return !String(html || '').trim() || /준비된 콘텐츠가 없습니다/.test(String(html)); }
-function mergeBrandCatalog(list, deletedIds = []) {
+function copyCatalogBrand(b) {
+  return { id: b.id || uid(), name: b.name, category: b.category || '', logo: b.logo || '', thumbnail: b.thumbnail || '', contentHtml: b.contentHtml || '', contentVersion: b.contentVersion || 1 };
+}
+function normalizeBrandName(name) {
+  return String(name || '').toLowerCase().replace(/[^a-z0-9가-힣]/g, '');
+}
+function isEmptyContent(html) {
+  return !String(html || '').trim() || /준비된 콘텐츠가 없습니다/.test(String(html));
+}
+function mergeBrandCatalog(list) {
   let changed = false;
   const out = Array.isArray(list) ? list.map(b => Object.assign({}, b)) : [];
   DEFAULT_BRAND_CONTENT.forEach(catalogBrand => {
-    if (deletedIds.includes(catalogBrand.id)) return;
     const keys = [catalogBrand.name, ...(catalogBrand.aliases || [])].map(normalizeBrandName);
-    const existing = out.find(b => { const brandKey = normalizeBrandName(b.name); if (!brandKey) return false; return keys.some(key => brandKey.includes(key) || key.includes(brandKey)); });
+    const existing = out.find(b => {
+      const brandKey = normalizeBrandName(b.name);
+      if (!brandKey) return false;
+      return keys.some(key => brandKey.includes(key) || key.includes(brandKey));
+    });
     if (existing) {
       const shouldUpgrade = existing.id === catalogBrand.id && (existing.contentVersion || 0) < (catalogBrand.contentVersion || 1);
-      if (isEmptyContent(existing.contentHtml) || shouldUpgrade) { existing.contentHtml = catalogBrand.contentHtml; existing.contentVersion = catalogBrand.contentVersion || 1; changed = true; }
-      if (catalogBrand.logo && existing.logo !== catalogBrand.logo) { existing.logo = catalogBrand.logo; changed = true; }
-      if (!existing.category && catalogBrand.category) { existing.category = catalogBrand.category; changed = true; }
+      if (isEmptyContent(existing.contentHtml) || shouldUpgrade) {
+        existing.contentHtml = catalogBrand.contentHtml;
+        existing.contentVersion = catalogBrand.contentVersion || 1;
+        changed = true;
+      }
+      if (catalogBrand.logo && existing.logo !== catalogBrand.logo) {
+        existing.logo = catalogBrand.logo;
+        changed = true;
+      }
+      if (!existing.category && catalogBrand.category) {
+        existing.category = catalogBrand.category;
+        changed = true;
+      }
       return;
     }
-    out.push(copyCatalogBrand(catalogBrand)); changed = true;
+    out.push(copyCatalogBrand(catalogBrand));
+    changed = true;
   });
   return { list: out, changed };
 }
-function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function migrateBlocksToHtml(b) {
+  if (b.contentHtml !== undefined) return b;
+  let html = '';
+  (b.blocks || []).forEach(bk => {
+    if (bk.type === 'heading') html += `<h2>${esc(bk.value || '')}</h2>`;
+    else if (bk.type === 'text') html += `<p>${esc(bk.value || '').replace(/\n/g,'<br>')}</p>`;
+    else if (bk.type === 'image' && bk.src) html += `<p><img src="${bk.src}" alt=""></p>`;
+    else if (bk.type === 'video' && bk.src) html += `<p><video src="${bk.src}" controls playsinline></video></p>`;
+  });
+  return { id: b.id, name: b.name, category: b.category || '', logo: b.logo || '', thumbnail: '', contentHtml: html };
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
+/* 다른 탭과 동기화 */
 try { window._bc = new BroadcastChannel('brand_kiosk'); } catch { window._bc = null; }
 
+/* ============================================================
+   상태
+============================================================ */
 let brands = [];
 let settings = DB.loadSettings();
 let currentEditingId = null;
 let isAdminAuthed = false;
-let selectedMedia = null;
+let selectedMedia = null; // 에디터에서 클릭한 이미지/영상
 
+/* ============================================================
+   홈 렌더 (썸네일 + 제목만)
+============================================================ */
 function renderHome() {
   document.getElementById('plaza-title').textContent = settings.title || DB.DEFAULT_SETTINGS.title;
   document.getElementById('plaza-sub').textContent   = settings.subtitle || DB.DEFAULT_SETTINGS.subtitle;
+
   const grid = document.getElementById('brand-grid');
   grid.innerHTML = '';
-  if (!brands.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;opacity:.5;">등록된 브랜드가 없습니다.<br>관리자 페이지에서 추가해 주세요.</div>'; return; }
+  if (!brands.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:80px 20px; opacity:.5;">등록된 브랜드가 없습니다.<br>관리자 페이지에서 추가해 주세요.</div>';
+    return;
+  }
   brands.forEach(b => {
     const card = document.createElement('div');
     card.className = 'brand-card';
     const thumb = thumbnailForBrand(b);
     const initial = (b.name || '?').charAt(0).toUpperCase();
-    card.innerHTML = `${thumb ? `<img class="thumb" src="${thumb}" alt="${esc(b.name)}">` : cardFallbackHtml(b.name || initial)}<div class="title-overlay"><div class="t-name">${esc(b.name || '(이름 없음)')}</div></div>`;
+    card.innerHTML = `
+      ${thumb
+        ? `<img class="thumb" src="${thumb}" alt="${esc(b.name)}">`
+        : cardFallbackHtml(b.name || initial)}
+      <div class="title-overlay">
+        <div class="t-name">${esc(b.name || '(이름 없음)')}</div>
+      </div>
+    `;
     const img = card.querySelector('.thumb');
-    if (img) img.onerror = () => { img.replaceWith(htmlToNode(cardFallbackHtml(b.name || initial))); };
+    if (img) {
+      img.onerror = () => {
+        img.replaceWith(htmlToNode(cardFallbackHtml(b.name || initial)));
+      };
+    }
     card.onclick = () => openBrand(b.id);
     grid.appendChild(card);
   });
 }
-function htmlToNode(html) { const wrap = document.createElement('div'); wrap.innerHTML = html.trim(); return wrap.firstElementChild; }
-function brandDisplayName(name) { return String(name || '?').split('|')[0].trim() || String(name || '?').trim(); }
-function cardFallbackHtml(name) { return `<div class="no-thumb logo-text">${esc(brandDisplayName(name))}</div>`; }
-function isGeneratedLogoAsset(src) { return /^assets\/logos\/[^?#]+\.svg(?:\?[^#]*)?(?:#.*)?$/i.test(String(src || '')); }
-function manualThumbnailForBrand(b) { return b && b.thumbnail && !isGeneratedLogoAsset(b.thumbnail) ? b.thumbnail : ''; }
-function thumbnailForBrand(b) { return manualThumbnailForBrand(b) || firstImageFromHtml(b?.contentHtml) || b?.logo || ''; }
-function firstImageFromHtml(html) { if (!html) return ''; const m = html.match(/<img[^>]+src="([^"]+)"/i); return m ? m[1] : ''; }
+function htmlToNode(html) {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = html.trim();
+  return wrap.firstElementChild;
+}
+function brandDisplayName(name) {
+  return String(name || '?').split('|')[0].trim() || String(name || '?').trim();
+}
+function cardFallbackHtml(name) {
+  return `<div class="no-thumb logo-text">${esc(brandDisplayName(name))}</div>`;
+}
+function isGeneratedLogoAsset(src) {
+  return /^assets\/logos\/[^?#]+\.svg(?:\?[^#]*)?(?:#.*)?$/i.test(String(src || ''));
+}
+function manualThumbnailForBrand(b) {
+  return b && b.thumbnail && !isGeneratedLogoAsset(b.thumbnail) ? b.thumbnail : '';
+}
+function thumbnailForBrand(b) {
+  return manualThumbnailForBrand(b) || firstImageFromHtml(b?.contentHtml) || b?.logo || '';
+}
+function firstImageFromHtml(html) {
+  if (!html) return '';
+  const m = html.match(/<img[^>]+src="([^"]+)"/i);
+  return m ? m[1] : '';
+}
 
+/* ============================================================
+   상세 팝업
+============================================================ */
 function openBrand(id) {
   const b = brands.find(x => x.id === id);
   if (!b) return;
@@ -661,17 +1202,34 @@ function openBrand(id) {
   const logoEl = document.getElementById('modal-logo');
   logoEl.innerHTML = b.logo ? `<img src="${b.logo}" alt="${esc(b.name)} 로고">` : esc((b.name||'?').charAt(0).toUpperCase());
   const logoImg = logoEl.querySelector('img');
-  if (logoImg) logoImg.onerror = () => { logoEl.textContent = brandDisplayName(b.name).charAt(0).toUpperCase(); };
+  if (logoImg) {
+    logoImg.onerror = () => {
+      logoEl.textContent = brandDisplayName(b.name).charAt(0).toUpperCase();
+    };
+  }
+
   const body = document.getElementById('modal-body');
-  body.innerHTML = `<div class="post-content">${b.contentHtml || '<p style="opacity:.5">준비된 콘텐츠가 없습니다.</p>'}</div><button class="close-big" onclick="closeBrand()">닫기</button>`;
-  body.querySelectorAll('.post-content img').forEach(img => { img.onerror = () => { img.replaceWith(htmlToNode(`<div class="content-logo-fallback">${esc(brandDisplayName(b.name))}</div>`)); }; });
+  body.innerHTML = `
+    <div class="post-content">${b.contentHtml || '<p style="opacity:.5">준비된 콘텐츠가 없습니다.</p>'}</div>
+    <button class="close-big" onclick="closeBrand()">닫기</button>
+  `;
+  body.querySelectorAll('.post-content img').forEach(img => {
+    img.onerror = () => {
+      img.replaceWith(htmlToNode(`<div class="content-logo-fallback">${esc(brandDisplayName(b.name))}</div>`));
+    };
+  });
   body.querySelectorAll('video').forEach(v => { v.controls = true; v.playsInline = true; });
   document.getElementById('brand-modal').classList.remove('hidden');
 }
 function closeBrand() { document.getElementById('brand-modal').classList.add('hidden'); }
 document.getElementById('modal-close').onclick = closeBrand;
-document.getElementById('brand-modal').addEventListener('click', e => { if (e.target === document.getElementById('brand-modal')) closeBrand(); });
+document.getElementById('brand-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('brand-modal')) closeBrand();
+});
 
+/* ============================================================
+   관리자 진입
+============================================================ */
 function openAdmin() {
   if (isAdminAuthed) { showAdminPanel(); return; }
   document.getElementById('admin-login').classList.remove('hidden');
@@ -687,24 +1245,40 @@ function closeAdmin() {
 }
 function tryLogin() {
   const pw = document.getElementById('admin-pw').value;
-  if (pw === settings.password) { isAdminAuthed = true; document.getElementById('admin-login').classList.add('hidden'); showAdminPanel(); }
-  else document.getElementById('admin-err').textContent = '비밀번호가 일치하지 않습니다.';
+  if (pw === settings.password) {
+    isAdminAuthed = true;
+    document.getElementById('admin-login').classList.add('hidden');
+    showAdminPanel();
+  } else {
+    document.getElementById('admin-err').textContent = '비밀번호가 일치하지 않습니다.';
+  }
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && !document.getElementById('admin-login').classList.contains('hidden')) tryLogin();
   if (e.key === 'Escape' && !document.getElementById('brand-modal').classList.contains('hidden')) closeBrand();
 });
 (function() {
+  // 하단 푸터를 5번 빠르게 탭하면 관리자 진입
   let taps = 0, lastTs = 0;
   const footer = document.querySelector('.home-footer');
-  function hit() { const now = Date.now(); if (now - lastTs > 2000) taps = 0; lastTs = now; taps++; if (taps >= 5) { taps = 0; openAdmin(); } }
+  function hit() {
+    const now = Date.now();
+    if (now - lastTs > 2000) taps = 0;
+    lastTs = now;
+    taps++;
+    if (taps >= 5) { taps = 0; openAdmin(); }
+  }
   footer.addEventListener('touchend', (e) => { e.preventDefault(); e.stopPropagation(); hit(); }, { passive: false });
   footer.addEventListener('click', (e) => { e.stopPropagation(); hit(); });
 })();
 
+/* ============================================================
+   관리자 패널
+============================================================ */
 let editMode = false;
 let dragSrcId = null;
 let touchDragId = null;
+let touchClone = null;
 
 function showAdminPanel() {
   editMode = false;
@@ -712,6 +1286,7 @@ function showAdminPanel() {
   document.getElementById('admin-editor-view').classList.add('hidden');
   renderAdminBoardGrid();
 }
+
 function backToAdminList() {
   commitEditorToModel();
   editMode = false;
@@ -719,7 +1294,9 @@ function backToAdminList() {
   document.getElementById('admin-panel').classList.remove('hidden');
   renderAdminBoardGrid();
 }
+
 function renderAdminList() { renderAdminBoardGrid(); }
+
 function enterEditMode() {
   editMode = true;
   document.getElementById('admin-normal-actions').classList.add('hidden');
@@ -728,6 +1305,7 @@ function enterEditMode() {
   document.getElementById('admin-add-btn').classList.add('hidden');
   renderAdminBoardGrid();
 }
+
 function exitEditMode() {
   editMode = false;
   document.getElementById('admin-normal-actions').classList.remove('hidden');
@@ -736,6 +1314,7 @@ function exitEditMode() {
   document.getElementById('admin-add-btn').classList.remove('hidden');
   renderAdminBoardGrid();
 }
+
 function openEditorForBrand(id) {
   exitEditMode();
   currentEditingId = id;
@@ -749,50 +1328,125 @@ function openEditorForBrand(id) {
 function renderAdminBoardGrid() {
   const grid = document.getElementById('admin-board-grid');
   grid.innerHTML = '';
+
   brands.forEach((b) => {
     const card = document.createElement('div');
     card.className = 'admin-board-card' + (editMode ? ' edit-mode' : '');
     card.dataset.id = b.id;
+
     const initial = (b.name || '?').charAt(0).toUpperCase();
     const thumb = thumbnailForBrand(b);
-    const thumbHtml = thumb ? `<img class="card-thumb" src="${esc(thumb)}">` : `<div class="card-thumb-placeholder">${esc(initial)}</div>`;
-    card.innerHTML = `<button class="card-delete-btn" data-id="${b.id}">✕</button><button class="card-edit-btn" data-id="${b.id}">✏</button><div class="card-inner">${thumbHtml}<div class="card-info"><div class="card-name">${esc(b.name || '(이름 없음)')}</div><div class="card-cat">${esc(b.category || '')}</div></div></div>`;
+    const thumbHtml = thumb
+      ? `<img class="card-thumb" src="${esc(thumb)}">`
+      : `<div class="card-thumb-placeholder">${esc(initial)}</div>`;
+
+    card.innerHTML = `
+      <button class="card-delete-btn" data-id="${b.id}">✕</button>
+      <button class="card-edit-btn" data-id="${b.id}">✏</button>
+      <div class="card-inner">
+        ${thumbHtml}
+        <div class="card-info">
+          <div class="card-name">${esc(b.name || '(이름 없음)')}</div>
+          <div class="card-cat">${esc(b.category || '')}</div>
+        </div>
+      </div>`;
+
+    // 삭제 버튼
     const deleteHandler = async (e) => {
       e.stopPropagation(); e.preventDefault();
       const bid = e.currentTarget.dataset.id;
       const br = brands.find(x => x.id === bid);
       if (!confirm(`"${br?.name}" 보드를 삭제할까요?`)) return;
+      const cloudUrls = extractCloudinaryUrls(br);
       brands = brands.filter(x => x.id !== bid);
-      await DB.deleteBrandById(bid);
+      await DB.save(brands);
       renderAdminBoardGrid();
       toast('삭제했습니다');
+      if (cloudUrls.length) showCloudinaryDeleteInfo(br.name, cloudUrls);
     };
     card.querySelector('.card-delete-btn').addEventListener('touchend', deleteHandler);
     card.querySelector('.card-delete-btn').addEventListener('click', deleteHandler);
-    const editHandler = (e) => { e.stopPropagation(); e.preventDefault(); openEditorForBrand(b.id); };
+
+    const editHandler = (e) => {
+      e.stopPropagation(); e.preventDefault();
+      openEditorForBrand(b.id);
+    };
     card.querySelector('.card-edit-btn').addEventListener('touchend', editHandler);
     card.querySelector('.card-edit-btn').addEventListener('click', editHandler);
-    let pressTimer = null, didLongPress = false;
-    card.addEventListener('touchstart', (e) => { didLongPress = false; if (editMode) return; pressTimer = setTimeout(() => { pressTimer = null; didLongPress = true; enterEditMode(); }, 600); }, { passive: true });
-    card.addEventListener('touchend', (e) => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } if (didLongPress) { didLongPress = false; return; } });
-    card.addEventListener('touchmove', () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } });
-    card.addEventListener('click', () => { if (editMode) { openEditorForBrand(b.id); return; } openEditorForBrand(b.id); });
+
+    // 길게 누르기 → 편집 모드 진입
+    let pressTimer = null;
+    let didLongPress = false;
+    card.addEventListener('touchstart', (e) => {
+      didLongPress = false;
+      if (editMode) return;
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        didLongPress = true;
+        enterEditMode();
+      }, 600);
+    }, { passive: true });
+
+    card.addEventListener('touchend', (e) => {
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+      if (didLongPress) { didLongPress = false; return; }
+      // 짧은 탭 — 편집 모드에서는 아무것도 안 함 (✏ 버튼으로만 에디터 진입)
+    });
+
+    card.addEventListener('touchmove', () => {
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    });
+
+    card.addEventListener('click', () => {
+      if (editMode) {
+        openEditorForBrand(b.id);
+        return;
+      }
+      // 일반 모드: 한 번 탭 → 에디터
+      openEditorForBrand(b.id);
+    });
+
+    // 드래그 — 터치(iOS/Android) + 마우스(Mac/Windows/iPad) 통합
     if (editMode) {
+      // ── 마우스/트랙패드 드래그 ──
       card.draggable = true;
-      card.addEventListener('dragstart', (e) => { dragSrcId = b.id; card.style.opacity = '.4'; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', b.id); });
-      card.addEventListener('dragend', () => { card.style.opacity = '1'; document.querySelectorAll('.admin-board-card').forEach(c => c.classList.remove('dragging-over')); });
-      card.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (b.id !== dragSrcId) card.classList.add('dragging-over'); });
+      card.addEventListener('dragstart', (e) => {
+        dragSrcId = b.id;
+        card.style.opacity = '.4';
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', b.id);
+      });
+      card.addEventListener('dragend', () => {
+        card.style.opacity = '1';
+        document.querySelectorAll('.admin-board-card').forEach(c => c.classList.remove('dragging-over'));
+      });
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (b.id !== dragSrcId) card.classList.add('dragging-over');
+      });
       card.addEventListener('dragleave', () => card.classList.remove('dragging-over'));
       card.addEventListener('drop', async (e) => {
-        e.preventDefault(); card.classList.remove('dragging-over');
+        e.preventDefault();
+        card.classList.remove('dragging-over');
         const fromId = e.dataTransfer.getData('text/plain');
         if (!fromId || fromId === b.id) return;
-        const from = brands.findIndex(x => x.id === fromId), to = brands.findIndex(x => x.id === b.id);
+        const from = brands.findIndex(x => x.id === fromId);
+        const to   = brands.findIndex(x => x.id === b.id);
         if (from < 0 || to < 0) return;
-        const [moved] = brands.splice(from, 1); brands.splice(to, 0, moved);
-        await DB.save(brands); renderAdminBoardGrid(); toast('순서를 변경했습니다');
+        const [moved] = brands.splice(from, 1);
+        brands.splice(to, 0, moved);
+        await DB.save(brands);
+        renderAdminBoardGrid();
+        toast('순서를 변경했습니다');
       });
-      card.addEventListener('touchstart', (e) => { touchDragId = b.id; card.style.opacity = '.5'; }, { passive: true });
+
+      // ── 터치 드래그 (iOS / Android) ──
+      card.addEventListener('touchstart', (e) => {
+        touchDragId = b.id;
+        card.style.opacity = '.5';
+      }, { passive: true });
+
       card.addEventListener('touchmove', (e) => {
         if (!touchDragId || touchDragId !== b.id) return;
         e.preventDefault();
@@ -802,6 +1456,7 @@ function renderAdminBoardGrid() {
         const target = els.find(el => el.classList.contains('admin-board-card') && el.dataset.id && el.dataset.id !== touchDragId);
         if (target) target.classList.add('dragging-over');
       }, { passive: false });
+
       card.addEventListener('touchend', async (e) => {
         if (!touchDragId || touchDragId !== b.id) return;
         card.style.opacity = '1';
@@ -810,35 +1465,54 @@ function renderAdminBoardGrid() {
         const els = document.elementsFromPoint(touch.clientX, touch.clientY);
         const target = els.find(el => el.classList.contains('admin-board-card') && el.dataset.id && el.dataset.id !== touchDragId);
         if (target) {
-          const from = brands.findIndex(x => x.id === touchDragId), to = brands.findIndex(x => x.id === target.dataset.id);
-          if (from >= 0 && to >= 0) { const [moved] = brands.splice(from, 1); brands.splice(to, 0, moved); await DB.save(brands); renderAdminBoardGrid(); toast('순서를 변경했습니다'); }
+          const from = brands.findIndex(x => x.id === touchDragId);
+          const to   = brands.findIndex(x => x.id === target.dataset.id);
+          if (from >= 0 && to >= 0) {
+            const [moved] = brands.splice(from, 1);
+            brands.splice(to, 0, moved);
+            await DB.save(brands);
+            renderAdminBoardGrid();
+            toast('순서를 변경했습니다');
+          }
         }
         touchDragId = null;
       });
     }
+
     grid.appendChild(card);
   });
 }
-
 async function addBrand() {
   commitEditorToModel();
   const nb = { id: uid(), name: '새 브랜드', category: '', logo: '', thumbnail: '', contentHtml: '' };
-  brands.push(nb); currentEditingId = nb.id;
+  brands.push(nb);
+  currentEditingId = nb.id;
   await DB.save(brands);
   document.getElementById('admin-panel').classList.add('hidden');
   document.getElementById('admin-editor-view').classList.remove('hidden');
   document.getElementById('editor-view-title').textContent = '새 보드';
-  renderEditor(); toast('새 보드를 추가했습니다');
+  renderEditor();
+  toast('새 보드를 추가했습니다');
 }
-
+/* Cloudinary URL 추출 헬퍼 */
 function extractCloudinaryUrls(b) {
   const urls = [];
   if (b.logo && b.logo.includes('cloudinary.com')) urls.push(b.logo);
   if (b.thumbnail && b.thumbnail.includes('cloudinary.com')) urls.push(b.thumbnail);
+  // 본문에서 이미지/영상 URL 추출
   const parser = new DOMParser();
   const doc = parser.parseFromString(b.contentHtml || '', 'text/html');
-  doc.querySelectorAll('img, video').forEach(el => { const src = el.src || el.getAttribute('src') || ''; if (src.includes('cloudinary.com')) urls.push(src); });
+  doc.querySelectorAll('img, video').forEach(el => {
+    const src = el.src || el.getAttribute('src') || '';
+    if (src.includes('cloudinary.com')) urls.push(src);
+  });
   return [...new Set(urls)];
+}
+
+function showCloudinaryDeleteInfo(brandName, urls) {
+  if (!urls.length) return;
+  const list = urls.map(u => `• ${u}`).join('\n');
+  alert(`"${brandName}" 보드의 Cloudinary 파일 목록:\n\n${list}\n\nCloudinary Media Library에서 위 파일들을 삭제하면 용량을 회수할 수 있어요.`);
 }
 
 async function deleteBrand() {
@@ -846,31 +1520,47 @@ async function deleteBrand() {
   const b = brands.find(x => x.id === currentEditingId);
   if (!b) return;
   if (!confirm(`"${b.name}" 보드를 삭제할까요?`)) return;
-  const deletedId = currentEditingId;
+  const cloudUrls = extractCloudinaryUrls(b);
   brands = brands.filter(x => x.id !== currentEditingId);
   currentEditingId = brands[0]?.id || null;
-  await DB.deleteBrandById(deletedId);
-  backToAdminList(); toast('삭제했습니다');
+  await DB.save(brands);
+  backToAdminList();
+  toast('삭제했습니다');
+  if (cloudUrls.length) showCloudinaryDeleteInfo(b.name, cloudUrls);
 }
 
+/* --- 에디터 렌더 --- */
 function renderEditor() {
   const wrap = document.getElementById('editor-wrap');
   const b = brands.find(x => x.id === currentEditingId);
   selectedMedia = null;
-  if (!b) { wrap.innerHTML = '<div class="editor"><p style="opacity:.5;text-align:center;padding:40px 0;">왼쪽에서 브랜드를 선택하거나 새로 추가하세요.</p></div>'; return; }
+  if (!b) {
+    wrap.innerHTML = '<div class="editor"><p style="opacity:.5;text-align:center;padding:40px 0;">왼쪽에서 브랜드를 선택하거나 새로 추가하세요.</p></div>';
+    return;
+  }
   const manualThumb = manualThumbnailForBrand(b);
   const autoThumb = firstImageFromHtml(b.contentHtml);
   const previewThumb = manualThumb || autoThumb;
-  const thumbHint = manualThumb ? '업로드한 썸네일을 홈 카드에 사용 중입니다' : (autoThumb ? '본문 첫 이미지가 홈 카드 썸네일로 사용됩니다' : '본문 첫 이미지가 생기면 자동 사용됩니다');
+  const thumbHint = manualThumb
+    ? '업로드한 썸네일을 홈 카드에 사용 중입니다'
+    : (autoThumb ? '본문 첫 이미지가 홈 카드 썸네일로 사용됩니다' : '본문 첫 이미지가 생기면 자동 사용됩니다');
   wrap.innerHTML = `
     <div class="editor">
-      <div class="row"><label>브랜드 이름</label><input type="text" id="ed-name" value="${esc(b.name)}" /></div>
-      <div class="row"><label>카테고리</label><input type="text" id="ed-cat" value="${esc(b.category || '')}" placeholder="예: Fashion, Food" /></div>
+      <div class="row">
+        <label>브랜드 이름</label>
+        <input type="text" id="ed-name" value="${esc(b.name)}" />
+      </div>
+      <div class="row">
+        <label>카테고리</label>
+        <input type="text" id="ed-cat" value="${esc(b.category || '')}" placeholder="예: Fashion, Food" />
+      </div>
       <div class="row">
         <label>브랜드 로고</label>
         <div class="logo-pick">
           <div class="preview" id="ed-logo-prev">${b.logo ? `<img src="${b.logo}">` : esc((b.name||'?').charAt(0).toUpperCase())}</div>
-          <label class="file-btn">이미지 선택<input type="file" accept="image/*" style="display:none" onchange="pickLogo(event)" /></label>
+          <label class="file-btn">이미지 선택
+            <input type="file" accept="image/*" style="display:none" onchange="pickLogo(event)" />
+          </label>
           ${b.logo ? `<button class="btn btn-ghost" onclick="clearLogo()">제거</button>` : ''}
           <span id="logo-uploading"></span>
         </div>
@@ -878,8 +1568,14 @@ function renderEditor() {
       <div class="row">
         <label>대표 썸네일<br><span style="font-weight:400;opacity:.5;font-size:11px;">(홈 카드 배경)</span></label>
         <div class="thumb-pick">
-          <div class="t-preview">${previewThumb ? `<img src="${previewThumb}">` : `<div>비워두면 본문 첫 이미지<br>가 자동 사용됩니다</div>`}</div>
-          <label class="file-btn">썸네일 선택<input type="file" accept="image/*" style="display:none" onchange="pickThumb(event)" /></label>
+          <div class="t-preview">
+            ${previewThumb
+              ? `<img src="${previewThumb}">`
+              : `<div>비워두면 본문 첫 이미지<br>가 자동 사용됩니다</div>`}
+          </div>
+          <label class="file-btn">썸네일 선택
+            <input type="file" accept="image/*" style="display:none" onchange="pickThumb(event)" />
+          </label>
           ${manualThumb ? `<button class="btn btn-ghost" onclick="clearThumb()">제거</button>` : ''}
           <span id="thumb-uploading"></span>
           <span style="font-size:12px;opacity:.55;line-height:1.4;">${thumbHint}</span>
@@ -888,6 +1584,7 @@ function renderEditor() {
       <div class="row">
         <label>본문</label>
         <div class="rte-wrap">
+          <!-- 한 줄 슬라이딩 툴바 -->
           <div class="rte-toolbar" id="rte-toolbar">
             <button type="button" data-cmd="bold" title="굵게"><b>B</b></button>
             <button type="button" data-cmd="italic" title="기울임"><i>I</i></button>
@@ -927,8 +1624,12 @@ function renderEditor() {
             <button type="button" data-cmd="insertUnorderedList" title="목록">•</button>
             <button type="button" data-cmd="insertOrderedList" title="번호">1.</button>
             <div class="sep"></div>
-            <label class="file-btn rte-upload-btn" title="이미지">📷<input type="file" accept="image/*" style="display:none" id="rte-img" /></label>
-            <label class="file-btn rte-upload-btn" title="영상">🎬<input type="file" accept="video/*" style="display:none" id="rte-vid" /></label>
+            <label class="file-btn rte-upload-btn" title="이미지">📷
+              <input type="file" accept="image/*" style="display:none" id="rte-img" />
+            </label>
+            <label class="file-btn rte-upload-btn" title="영상">🎬
+              <input type="file" accept="video/*" style="display:none" id="rte-vid" />
+            </label>
             <div class="sep"></div>
             <button type="button" id="img-left" title="미디어 왼쪽">◧</button>
             <button type="button" id="img-center" title="미디어 가운데">◫</button>
@@ -936,11 +1637,9 @@ function renderEditor() {
             <div class="sep"></div>
             <button type="button" id="rte-link" title="링크">🔗</button>
             <button type="button" id="rte-hr" title="구분선">―</button>
-            <button type="button" id="rte-del-media" title="선택 이미지/영상 삭제" style="color:#f87171;">🗑</button>
             <button type="button" data-cmd="undo" title="취소">↶</button>
             <button type="button" data-cmd="redo" title="다시">↷</button>
             <button type="button" data-cmd="removeFormat" title="서식 지우기">⌫</button>
-            <button type="button" id="rte-md" title="마크다운 변환 (## 제목, **볼드**, > 인용, --- 구분선)" style="font-size:12px;font-weight:700;letter-spacing:-.5px;padding:4px 8px;background:rgba(99,102,241,.2);border-radius:6px;">Md↓</button>
             <span id="rte-uploading" style="font-size:12px;opacity:.7;white-space:nowrap;align-self:center;padding:0 4px;"></span>
           </div>
           <div class="rte-editor" id="rte-editor" contenteditable="true">${b.contentHtml || ''}</div>
@@ -958,40 +1657,54 @@ function renderEditor() {
   bindRichTextEditor(b);
 }
 
+/* --- WYSIWYG 바인딩 --- */
 function bindRichTextEditor(b) {
   const editor = document.getElementById('rte-editor');
   const toolbar = document.getElementById('rte-toolbar');
-  toolbar.addEventListener('mousedown', e => { if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') e.preventDefault(); });
-  toolbar.querySelectorAll('button[data-cmd]').forEach(btn => { btn.onclick = () => { editor.focus(); document.execCommand(btn.dataset.cmd, false, null); syncContent(b); }; });
+
+  toolbar.addEventListener('mousedown', e => {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') e.preventDefault();
+  });
+
+  toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+    btn.onclick = () => {
+      editor.focus();
+      document.execCommand(btn.dataset.cmd, false, null);
+      syncContent(b);
+    };
+  });
   document.getElementById('rte-block').onchange = (e) => { editor.focus(); document.execCommand('formatBlock', false, e.target.value); syncContent(b); };
   document.getElementById('rte-font').onchange  = (e) => { editor.focus(); if (e.target.value) document.execCommand('fontName', false, e.target.value); syncContent(b); };
   document.getElementById('rte-size').onchange  = (e) => { editor.focus(); document.execCommand('fontSize', false, e.target.value); syncContent(b); };
   document.getElementById('rte-fg').oninput     = (e) => { editor.focus(); document.execCommand('foreColor', false, e.target.value); syncContent(b); };
   document.getElementById('rte-bg').oninput     = (e) => { editor.focus(); document.execCommand('hiliteColor', false, e.target.value); syncContent(b); };
-  document.getElementById('rte-link').onclick   = () => { const url = prompt('링크 URL'); if (!url) return; editor.focus(); document.execCommand('createLink', false, url); syncContent(b); };
-  document.getElementById('rte-hr').onclick = () => { editor.focus(); document.execCommand('insertHorizontalRule'); syncContent(b); };
+  document.getElementById('rte-link').onclick   = () => {
+    const url = prompt('링크 URL'); if (!url) return;
+    editor.focus(); document.execCommand('createLink', false, url); syncContent(b);
+  };
+  document.getElementById('rte-hr').onclick = () => {
+    editor.focus(); document.execCommand('insertHorizontalRule'); syncContent(b);
+  };
+
   document.getElementById('rte-img').onchange = (e) => insertMediaFromFile(e, 'img', b);
   document.getElementById('rte-vid').onchange = (e) => insertMediaFromFile(e, 'video', b);
+
+  // 미디어 선택
   editor.addEventListener('click', e => {
     const prev = editor.querySelector('.media-selected');
     if (prev) prev.classList.remove('media-selected');
-    if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') { selectedMedia = e.target; e.target.classList.add('media-selected'); }
-    else selectedMedia = null;
+    if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+      selectedMedia = e.target;
+      e.target.classList.add('media-selected');
+    } else {
+      selectedMedia = null;
+    }
   });
-  document.getElementById('rte-del-media').onclick = () => { if (!selectedMedia) { toast('먼저 이미지나 영상을 클릭해서 선택하세요'); return; } deleteSelectedMedia(b); };
-  editor.addEventListener('keydown', e => { if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMedia) { e.preventDefault(); deleteSelectedMedia(b); } });
+
+  // 이미지 좌/중/우 정렬
   document.getElementById('img-left').onclick   = () => alignMedia('left', b);
   document.getElementById('img-center').onclick = () => alignMedia('center', b);
   document.getElementById('img-right').onclick  = () => alignMedia('right', b);
-
-  // ★ 마크다운 변환 버튼 (핵심 패치)
-  document.getElementById('rte-md').onclick = () => {
-    const raw = editor.innerText || editor.textContent;
-    const converted = markdownToHtml(raw);
-    editor.innerHTML = converted;
-    syncContent(b);
-    toast('마크다운 변환 완료 ✓');
-  };
 
   editor.addEventListener('input', () => syncContent(b));
   editor.addEventListener('blur',  () => syncContent(b));
@@ -1001,7 +1714,8 @@ function bindRichTextEditor(b) {
       e.preventDefault();
       const selection = window.getSelection();
       const range = selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
-      insertPastedImages(imageFiles, b, range); return;
+      insertPastedImages(imageFiles, b, range);
+      return;
     }
     e.preventDefault();
     const text = (e.clipboardData || window.clipboardData).getData('text/plain');
@@ -1012,43 +1726,85 @@ function bindRichTextEditor(b) {
 function getClipboardImageFiles(clipboardData) {
   if (!clipboardData) return [];
   const files = [];
-  Array.from(clipboardData.items || []).forEach(item => { if (item.kind === 'file' && item.type.startsWith('image/')) { const file = item.getAsFile(); if (file) files.push(file); } });
-  Array.from(clipboardData.files || []).forEach(file => { if (file.type.startsWith('image/') && !files.includes(file)) files.push(file); });
+  Array.from(clipboardData.items || []).forEach(item => {
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) files.push(file);
+    }
+  });
+  Array.from(clipboardData.files || []).forEach(file => {
+    if (file.type.startsWith('image/') && !files.includes(file)) files.push(file);
+  });
   return files;
 }
-async function insertPastedImages(files, b, range) { for (const file of files) { await insertMediaFile(file, 'img', b, { range, label: `붙여넣은 이미지 업로드 중… ${(file.size/1024/1024).toFixed(1)}MB` }); } }
-function deleteSelectedMedia(b) {
-  if (!selectedMedia) return;
-  const el = selectedMedia;
-  const editor = document.getElementById('rte-editor');
-  const parent = el.parentElement;
-  if (parent && parent !== editor && parent.childNodes.length === 1) parent.remove();
-  else el.remove();
-  selectedMedia = null; syncContent(b); toast('삭제했습니다');
+
+async function insertPastedImages(files, b, range) {
+  for (const file of files) {
+    await insertMediaFile(file, 'img', b, {
+      range,
+      label: `붙여넣은 이미지 업로드 중… ${(file.size/1024/1024).toFixed(1)}MB`
+    });
+  }
 }
+
 function alignMedia(which, b) {
   if (!selectedMedia) { toast('먼저 에디터 안의 이미지나 영상을 클릭한 뒤 정렬해 주세요'); return; }
   const el = selectedMedia;
-  el.style.display = 'block'; el.style.float = 'none';
-  if (which === 'left') { el.style.marginLeft = '0'; el.style.marginRight = 'auto'; }
-  else if (which === 'right') { el.style.marginLeft = 'auto'; el.style.marginRight = '0'; }
-  else { el.style.marginLeft = 'auto'; el.style.marginRight = 'auto'; }
+  el.style.display = 'block';
+  el.style.float = 'none';
+  if (which === 'left') {
+    el.style.marginLeft = '0';
+    el.style.marginRight = 'auto';
+  } else if (which === 'right') {
+    el.style.marginLeft = 'auto';
+    el.style.marginRight = '0';
+  } else {
+    el.style.marginLeft = 'auto';
+    el.style.marginRight = 'auto';
+  }
   syncContent(b);
 }
 
+/* 용량 제한 없이 업로드 — FileReader로 data URL 인코딩
+   (IndexedDB는 용량 제한이 사실상 없음: 로컬 디스크 가용량 기반) */
+/* Cloudinary 업로드 헬퍼 */
 const CLOUDINARY_CLOUD = 'dqlyodqiw';
 const CLOUDINARY_PRESET = 'nmhttl5r';
+
 async function uploadToCloudinary(file) {
   const isVideo = file.type.startsWith('video/');
   const resourceType = isVideo ? 'video' : 'image';
   const fd = new FormData();
-  fd.append('file', file); fd.append('upload_preset', CLOUDINARY_PRESET);
-  fd.append('quality', 'auto'); fd.append('fetch_format', 'auto');
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, { method: 'POST', body: fd });
-  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error?.message || 'Cloudinary 업로드 실패'); }
-  const data = await res.json(); return data.secure_url;
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  if (isVideo) {
+    // 영상 자동 압축 최적화
+    fd.append('quality', 'auto');
+    fd.append('fetch_format', 'auto');
+  } else {
+    // 이미지 자동 압축 최적화
+    fd.append('quality', 'auto');
+    fd.append('fetch_format', 'auto');
+  }
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, {
+    method: 'POST', body: fd
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'Cloudinary 업로드 실패');
+  }
+  const data = await res.json();
+  return data.secure_url;
 }
-function restoreEditorSelection(range) { if (!range) return; const selection = window.getSelection(); if (!selection) return; selection.removeAllRanges(); selection.addRange(range); }
+
+function restoreEditorSelection(range) {
+  if (!range) return;
+  const selection = window.getSelection();
+  if (!selection) return;
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 async function insertMediaFile(file, kind, b, options = {}) {
   if (!file) return;
   const status = document.getElementById('rte-uploading');
@@ -1057,76 +1813,136 @@ async function insertMediaFile(file, kind, b, options = {}) {
     const url = await uploadToCloudinary(file);
     status.innerHTML = '';
     const editor = document.getElementById('rte-editor');
-    editor.focus(); restoreEditorSelection(options.range);
+    editor.focus();
+    restoreEditorSelection(options.range);
     let html = '';
     if (kind === 'img') html = `<p><img src="${url}" alt=""></p><p><br></p>`;
     else html = `<p><video src="${url}" controls playsinline></video></p><p><br></p>`;
-    document.execCommand('insertHTML', false, html); syncContent(b);
-  } catch(e) { status.innerHTML = ''; toast('업로드 실패: ' + e.message); }
+    document.execCommand('insertHTML', false, html);
+    syncContent(b);
+  } catch(e) {
+    status.innerHTML = '';
+    toast('업로드 실패: ' + e.message);
+  }
 }
-async function insertMediaFromFile(ev, kind, b) { const file = ev.target.files[0]; ev.target.value = ''; await insertMediaFile(file, kind, b); }
+
+async function insertMediaFromFile(ev, kind, b) {
+  const file = ev.target.files[0]; ev.target.value = '';
+  await insertMediaFile(file, kind, b);
+}
+
 function syncContent(b) {
   const editor = document.getElementById('rte-editor');
   if (!editor || !b) return;
+  // 선택 표시용 class 는 저장본에서 제거
   const clone = editor.cloneNode(true);
   clone.querySelectorAll('.media-selected').forEach(el => el.classList.remove('media-selected'));
   b.contentHtml = clone.innerHTML;
-  const manualThumb = manualThumbnailForBrand(b);
-  if (!manualThumb) {
-    const tPrev = document.querySelector('.thumb-pick .t-preview');
-    const hint  = document.querySelector('.thumb-pick span[style]');
-    if (tPrev) {
-      const autoThumb = firstImageFromHtml(b.contentHtml);
-      if (autoThumb) { tPrev.innerHTML = `<img src="${autoThumb}" style="width:100%;height:100%;object-fit:cover;">`; if (hint) hint.textContent = '본문 첫 이미지가 홈 카드 썸네일로 사용됩니다'; }
-      else { tPrev.innerHTML = `<div style="font-size:11px;text-align:center;color:#888;">비워두면 본문 첫 이미지<br>가 자동 사용됩니다</div>`; if (hint) hint.textContent = '본문 첫 이미지가 생기면 자동 사용됩니다'; }
-    }
-  }
 }
 function commitEditorToModel() {
   const b = brands.find(x => x.id === currentEditingId);
   if (!b) return;
   const editor = document.getElementById('rte-editor');
-  if (editor) { const clone = editor.cloneNode(true); clone.querySelectorAll('.media-selected').forEach(el => el.classList.remove('media-selected')); b.contentHtml = clone.innerHTML; }
-  const nm = document.getElementById('ed-name'); const cat = document.getElementById('ed-cat');
-  if (nm) b.name = nm.value; if (cat) b.category = cat.value;
+  if (editor) {
+    const clone = editor.cloneNode(true);
+    clone.querySelectorAll('.media-selected').forEach(el => el.classList.remove('media-selected'));
+    b.contentHtml = clone.innerHTML;
+  }
+  const nm = document.getElementById('ed-name');
+  const cat = document.getElementById('ed-cat');
+  if (nm)  b.name = nm.value;
+  if (cat) b.category = cat.value;
 }
+
+/* 로고/썸네일 업로드 — 용량 제한 없음 */
 async function pickLogo(ev) {
   const file = ev.target.files[0]; if (!file) return;
   const status = document.getElementById('logo-uploading');
   status.innerHTML = `<span class="uploading">업로드 중…</span>`;
-  try { const url = await uploadToCloudinary(file); status.innerHTML = ''; const b = brands.find(x => x.id === currentEditingId); b.logo = url; commitEditorToModel(); renderEditor(); renderAdminList(); }
-  catch(e) { status.innerHTML = ''; toast('로고 업로드 실패'); }
+  try {
+    const url = await uploadToCloudinary(file);
+    status.innerHTML = '';
+    const b = brands.find(x => x.id === currentEditingId);
+    b.logo = url; commitEditorToModel(); renderEditor(); renderAdminList();
+  } catch(e) {
+    status.innerHTML = '';
+    toast('로고 업로드 실패');
+  }
 }
-function clearLogo() { const b = brands.find(x => x.id === currentEditingId); b.logo = ''; commitEditorToModel(); renderEditor(); renderAdminList(); }
+function clearLogo() {
+  const b = brands.find(x => x.id === currentEditingId);
+  b.logo = ''; commitEditorToModel(); renderEditor(); renderAdminList();
+}
 async function pickThumb(ev) {
   const file = ev.target.files[0]; if (!file) return;
   const status = document.getElementById('thumb-uploading');
   status.innerHTML = `<span class="uploading">업로드 중…</span>`;
-  try { const url = await uploadToCloudinary(file); status.innerHTML = ''; const b = brands.find(x => x.id === currentEditingId); b.thumbnail = url; commitEditorToModel(); renderEditor(); }
-  catch(e) { status.innerHTML = ''; toast('썸네일 업로드 실패'); }
+  try {
+    const url = await uploadToCloudinary(file);
+    status.innerHTML = '';
+    const b = brands.find(x => x.id === currentEditingId);
+    b.thumbnail = url; commitEditorToModel(); renderEditor();
+  } catch(e) {
+    status.innerHTML = '';
+    toast('썸네일 업로드 실패');
+  }
 }
-function clearThumb() { const b = brands.find(x => x.id === currentEditingId); b.thumbnail = ''; commitEditorToModel(); renderEditor(); }
-async function saveBrand() { commitEditorToModel(); const ok = await DB.save(brands); if (ok) { renderHome(); toast('저장되었습니다 ✓'); setTimeout(() => backToAdminList(), 600); } else toast('저장 실패'); }
-async function previewBrand() {
-  commitEditorToModel();
-  const modal = document.getElementById('brand-modal');
-  modal.style.zIndex = '300'; openBrand(currentEditingId);
-  const origClose = window.closeBrand;
-  window.closeBrand = function() { origClose(); modal.style.zIndex = ''; window.closeBrand = origClose; };
+function clearThumb() {
+  const b = brands.find(x => x.id === currentEditingId);
+  b.thumbnail = ''; commitEditorToModel(); renderEditor();
 }
 
+async function saveBrand() {
+  commitEditorToModel();
+  const ok = await DB.save(brands);
+  if (ok) {
+    renderHome();
+    toast('저장되었습니다 ✓');
+    setTimeout(() => backToAdminList(), 600);
+  } else {
+    toast('저장 실패');
+  }
+}
+async function previewBrand() {
+  commitEditorToModel();
+  // 에디터는 그대로 두고 팝업만 위에 띄움 (z-index로 덮음)
+  const modal = document.getElementById('brand-modal');
+  // 임시로 modal z-index를 admin-editor-view(200) 위로
+  modal.style.zIndex = '300';
+  openBrand(currentEditingId);
+  // 닫기 버튼에 복귀 로직 추가
+  const origClose = window.closeBrand;
+  window.closeBrand = function() {
+    origClose();
+    modal.style.zIndex = '';
+    window.closeBrand = origClose;
+  };
+}
+
+/* ============================================================
+   백업 내보내기 / 가져오기 — 다른 컴퓨터로 콘텐츠 이동용
+============================================================ */
 function exportData() {
   commitEditorToModel();
-  const payload = { app: 'BrandPlaza', version: 1, exportedAt: new Date().toISOString(), brands, settings };
+  const payload = {
+    app: 'BrandPlaza',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    brands: brands,
+    settings: settings
+  };
   const json = JSON.stringify(payload, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url;
-  a.download = `brandplaza-backup-${new Date().toISOString().slice(0,10)}.json`;
+  const a = document.createElement('a');
+  a.href = url;
+  const ts = new Date().toISOString().slice(0,10);
+  a.download = `brandplaza-backup-${ts}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast('백업 파일을 내려받았습니다');
 }
+
 function importData(ev) {
   const file = ev.target.files[0]; ev.target.value = '';
   if (!file) return;
@@ -1136,69 +1952,300 @@ function importData(ev) {
     try {
       const data = JSON.parse(reader.result);
       if (!data || !Array.isArray(data.brands)) throw new Error('형식 오류');
-      brands = data.brands; await DB.save(brands);
-      if (data.settings && typeof data.settings === 'object') { settings = Object.assign({}, settings, data.settings); DB.saveSettings(settings); }
+      brands = data.brands;
+      await DB.save(brands);
+      if (data.settings && typeof data.settings === 'object') {
+        settings = Object.assign({}, settings, data.settings);
+        DB.saveSettings(settings);
+      }
       currentEditingId = brands[0]?.id || null;
-      renderAdminList(); renderEditor(); renderHome();
+      renderAdminList();
+      renderEditor();
+      renderHome();
       toast(`백업을 가져왔습니다 (브랜드 ${brands.length}개)`);
-    } catch (e) { console.error(e); toast('백업 파일을 읽을 수 없습니다 (형식 오류)'); }
+    } catch (e) {
+      console.error(e);
+      toast('백업 파일을 읽을 수 없습니다 (형식 오류)');
+    }
   };
   reader.onerror = () => toast('파일을 읽지 못했습니다');
   reader.readAsText(file);
 }
+
 function showSettings() {
-  const newTitle = prompt('키오스크 타이틀', settings.title || DB.DEFAULT_SETTINGS.title); if (newTitle === null) return;
-  const newSub = prompt('부제', settings.subtitle || DB.DEFAULT_SETTINGS.subtitle); if (newSub === null) return;
-  const newPw = prompt('새 관리자 비밀번호 (변경하지 않으려면 비워두세요)', ''); if (newPw === null) return;
-  settings.title = newTitle; settings.subtitle = newSub;
+  const newTitle = prompt('키오스크 타이틀', settings.title || DB.DEFAULT_SETTINGS.title);
+  if (newTitle === null) return;
+  const newSub = prompt('부제 (예: 궁금한 브랜드, 스타일링 등 확인해보세요!)', settings.subtitle || DB.DEFAULT_SETTINGS.subtitle);
+  if (newSub === null) return;
+  const newPw = prompt('새 관리자 비밀번호 (변경하지 않으려면 비워두세요)', '');
+  if (newPw === null) return;
+  settings.title = newTitle;
+  settings.subtitle = newSub;
   if (newPw.trim()) settings.password = newPw.trim();
-  DB.saveSettings(settings); renderHome(); toast('설정을 저장했습니다');
+  DB.saveSettings(settings);
+  renderHome();
+  toast('설정을 저장했습니다');
 }
 
 /* ============================================================
-   마크다운 → HTML 변환기
-   지원: # ## ### 제목 / **볼드** *이탤릭* ~~취소선~~ `코드`
-         > 인용 / · - * 목록 / 1. 번호목록 / --- 구분선
+   종료 제스처 & 전체화면
 ============================================================ */
-function markdownToHtml(md) {
-  const lines = md.split('\n');
-  let html = '';
-  let inUl = false, inOl = false;
-  const closeLists = () => {
-    if (inUl) { html += '</ul>'; inUl = false; }
-    if (inOl) { html += '</ol>'; inOl = false; }
-  };
-  const inlineFormat = (text) => {
-    return text
-      .replace(/\*\*\*(.+?)\*\*\*/g, '<b><i>$1</i></b>')
-      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      .replace(/\*(.+?)\*/g,     '<i>$1</i>')
-      .replace(/~~(.+?)~~/g,     '<s>$1</s>')
-      .replace(/`(.+?)`/g,       '<code>$1</code>');
-  };
-  lines.forEach(line => {
-    if (/^-{3,}$/.test(line.trim())) { closeLists(); html += '<hr>'; return; }
-    if (/^### (.+)/.test(line)) { closeLists(); html += '<h3>' + inlineFormat(line.replace(/^### /, '')) + '</h3>'; return; }
-    if (/^## (.+)/.test(line))  { closeLists(); html += '<h2>' + inlineFormat(line.replace(/^## /, '')) + '</h2>'; return; }
-    if (/^# (.+)/.test(line))   { closeLists(); html += '<h1>' + inlineFormat(line.replace(/^# /, '')) + '</h1>'; return; }
-    if (/^> (.+)/.test(line))   { closeLists(); html += '<blockquote>' + inlineFormat(line.replace(/^> /, '')) + '</blockquote>'; return; }
-    if (/^[·\-\*] (.+)/.test(line)) {
-      if (inOl) { html += '</ol>'; inOl = false; }
-      if (!inUl) { html += '<ul>'; inUl = true; }
-      html += '<li>' + inlineFormat(line.replace(/^[·\-\*] /, '')) + '</li>'; return;
-    }
-    if (/^\d+\. (.+)/.test(line)) {
-      if (inUl) { html += '</ul>'; inUl = false; }
-      if (!inOl) { html += '<ol>'; inOl = true; }
-      html += '<li>' + inlineFormat(line.replace(/^\d+\. /, '')) + '</li>'; return;
-    }
-    if (line.trim() === '') { closeLists(); html += '<p><br></p>'; return; }
-    closeLists();
-    html += '<p>' + inlineFormat(line) + '</p>';
+(function() {
+  const sequence = [0,1,2,3];
+  let buf = []; let lastTs = 0;
+  document.querySelectorAll('.corner').forEach(el => {
+    el.addEventListener('click', () => {
+      const c = Number(el.dataset.corner);
+      const now = Date.now();
+      if (now - lastTs > 3000) buf = [];
+      lastTs = now;
+      buf.push(c);
+      if (buf.length > sequence.length) buf.shift();
+      if (JSON.stringify(buf) === JSON.stringify(sequence)) { buf = []; showExitPrompt(); }
+    });
   });
-  closeLists();
-  return html;
+})();
+function showExitPrompt() {
+  const wrap = document.createElement('div');
+  wrap.className = 'exit-prompt';
+  wrap.innerHTML = `
+    <div class="exit-card">
+      <h3>키오스크 종료</h3>
+      <p>전체화면을 해제하고 홈으로 돌아갑니다.</p>
+      <div class="actions">
+        <button class="btn btn-ghost" id="ex-cancel">취소</button>
+        <button class="btn btn-primary" id="ex-ok">종료</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.querySelector('#ex-cancel').onclick = () => wrap.remove();
+  wrap.querySelector('#ex-ok').onclick = () => { wrap.remove(); exitFullscreenSafe(); toast('키오스크를 종료했습니다'); };
 }
+function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function enterFullscreen() {
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) { try { req.call(el); } catch {} }
+}
+function exitFullscreenSafe() {
+  if (document.exitFullscreen) { try { document.exitFullscreen(); } catch {} }
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+}
+function updateFsState() { document.body.classList.toggle('is-fs', isFullscreen()); }
+document.getElementById('fs-toggle').addEventListener('click', e => {
+  e.stopPropagation();
+  if (isFullscreen()) exitFullscreenSafe(); else enterFullscreen();
+  setTimeout(updateFsState, 100);
+});
+document.addEventListener('fullscreenchange', updateFsState);
+document.addEventListener('webkitfullscreenchange', updateFsState);
+document.getElementById('kiosk-home').addEventListener('click', e => {
+  if (e.target.closest('.brand-card') || e.target.closest('button') ||
+      e.target.closest('.corner') || e.target.closest('.home-footer')) return;
+  if (!isFullscreen()) enterFullscreen();
+});
+
+/* ============================================================
+   유틸 & 초기화
+============================================================ */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function updateClock() {
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  document.getElementById('clock').textContent = `${hh}:${mm}`;
+}
+updateClock();
+setInterval(updateClock, 15000);
+
+/* 자동 홈 복귀 — 무조작 시 팝업 닫고 홈으로 (에디터 작성 중엔 동작 안 함) */
+(function() {
+  let idleTimer = null;
+  const IDLE_MS = 120000; // 2분
+
+  function isEditorOpen() {
+    const adminEditor = document.getElementById('admin-editor-view');
+    const adminPanel  = document.getElementById('admin-panel');
+    const adminLogin  = document.getElementById('admin-login');
+    return (
+      !adminEditor.classList.contains('hidden') ||
+      !adminPanel.classList.contains('hidden')  ||
+      !adminLogin.classList.contains('hidden')
+    );
+  }
+
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    // 에디터/관리자 패널이 열려있으면 타이머 자체를 걸지 않음
+    if (isEditorOpen()) return;
+    idleTimer = setTimeout(() => {
+      // 타이머 발동 시점에도 한 번 더 체크
+      if (isEditorOpen()) return;
+      const modal = document.getElementById('brand-modal');
+      if (modal && !modal.classList.contains('hidden')) closeBrand();
+    }, IDLE_MS);
+  }
+
+  ['touchstart', 'touchend', 'click', 'mousemove', 'keydown', 'input'].forEach(evt => {
+    document.addEventListener(evt, resetIdle, { passive: true });
+  });
+
+  resetIdle();
+})()
+
+/* Safe Area 동적 감지 — CSS 변수 + JS 직접 적용 */
+(function() {
+  function applyPadding() {
+    // CSS env() 값을 JS로 읽어서 직접 적용
+    const testEl = document.createElement('div');
+    testEl.style.cssText = 'position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);pointer-events:none;visibility:hidden;';
+    document.body.appendChild(testEl);
+    const cs = getComputedStyle(testEl);
+    const top = parseFloat(cs.paddingTop) || 0;
+    const bot = parseFloat(cs.paddingBottom) || 0;
+    document.body.removeChild(testEl);
+
+    const headerPad = Math.max(top + 10, 52);
+    const footerPad = Math.max(bot, 8);
+
+    // 헤더에 직접 적용
+    const header = document.querySelector('#kiosk-home header');
+    if (header) header.style.paddingTop = headerPad + 'px';
+
+    // 어드민 헤더에도 적용
+    document.querySelectorAll('.admin-header').forEach(h => {
+      h.style.paddingTop = headerPad + 'px';
+    });
+
+    // 푸터 하단 패딩
+    const footer = document.querySelector('.home-footer');
+    if (footer) footer.style.paddingBottom = footerPad + 'px';
+  }
+
+  // 즉시 + 로드 후 + 리사이즈 시 적용
+  applyPadding();
+  window.addEventListener('load', applyPadding);
+  window.addEventListener('resize', applyPadding);
+  // PWA에서 안전하게 적용되도록 약간 딜레이 후 재적용
+  setTimeout(applyPadding, 300);
+  setTimeout(applyPadding, 1000);
+})();
+
+/* 전체화면 버튼 자동 숨김 (3초) */
+(function() {
+  const btn = document.getElementById('fs-toggle');
+  if (!btn) return;
+  let timer = null;
+  function showBtn() {
+    btn.classList.remove('hidden-auto');
+    clearTimeout(timer);
+    timer = setTimeout(() => btn.classList.add('hidden-auto'), 3000);
+  }
+  showBtn();
+  ['touchstart','mousemove','click'].forEach(evt => {
+    document.getElementById('kiosk-home').addEventListener(evt, showBtn, { passive: true });
+  });
+})();
+
+/* 탭 간 동기화 */
+if (window._bc) {
+  window._bc.onmessage = async (e) => {
+    if (e && e.data && e.data.type === 'brands-updated') {
+      brands = await DB.load();
+      renderHome();
+      if (!document.getElementById('admin-panel').classList.contains('hidden')) renderAdminList();
+    }
+  };
+}
+window.addEventListener('storage', e => {
+  if (e.key === DB.SETTINGS_KEY) { settings = DB.loadSettings(); renderHome(); }
+});
+
+/* iOS 더블탭 확대 방지 */
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
+/* ============================================================
+   키오스크 잠금 — 브라우저 내에서 차단 가능한 이탈 경로 차단
+   (OS 레벨 홈버튼/앱스위처는 OS 설정 필요 — README 참고)
+============================================================ */
+(function lockDown() {
+  const isInInput = (el) => {
+    if (!el || !el.closest) return false;
+    return !!(el.closest('input, textarea, [contenteditable="true"]'));
+  };
+
+  // 1) 우클릭 컨텍스트 메뉴 차단 (편집 영역은 허용)
+  document.addEventListener('contextmenu', e => {
+    if (isInInput(e.target)) return;
+    e.preventDefault();
+  });
+
+  // 2) 키보드 단축키 차단
+  document.addEventListener('keydown', e => {
+    const key = e.key;
+    const ctrl = e.ctrlKey || e.metaKey;
+    const inInput = isInInput(e.target);
+
+    // 새로고침 / 전체화면 / 개발자도구 — 무조건 차단
+    if (key === 'F5' || key === 'F11' || key === 'F12') { e.preventDefault(); return; }
+    if (ctrl && ['r','R','w','W','n','N','t','T','p','P','s','S','o','O','u','U','h','H','f','F','g','G','l','L'].includes(key)) {
+      e.preventDefault(); return;
+    }
+    if (ctrl && e.shiftKey && ['i','I','j','J','c','C','r','R','t','T','n','N','w','W','p','P'].includes(key)) {
+      e.preventDefault(); return;
+    }
+    if (e.altKey && (key === 'ArrowLeft' || key === 'ArrowRight')) { e.preventDefault(); return; } // Alt+← 뒤로가기
+
+    // 입력창 바깥에서는 백스페이스 탐색 차단
+    if (key === 'Backspace' && !inInput) { e.preventDefault(); return; }
+  });
+
+  // 3) Ctrl+휠 줌 차단
+  document.addEventListener('wheel', e => {
+    if (e.ctrlKey || e.metaKey) e.preventDefault();
+  }, { passive: false });
+
+  // 4) 뒤로가기 제스처(iOS 가장자리 스와이프, Android 백제스처) 차단
+  try {
+    history.pushState({ lock: true }, '', location.href);
+    window.addEventListener('popstate', () => {
+      history.pushState({ lock: true }, '', location.href);
+    });
+  } catch {}
+
+  // 5) 드래그 앤 드롭 차단 (관리자 브랜드 순서변경은 허용)
+  document.addEventListener('dragstart', e => {
+    if (e.target.closest && e.target.closest('.brand-list li')) return;
+    e.preventDefault();
+  });
+  document.addEventListener('drop', e => e.preventDefault());
+
+  // 6) 외부 링크 이동 차단
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    const href = a.getAttribute('href') || '';
+    if (href.startsWith('#')) return;
+    e.preventDefault();
+  });
+
+  // 7) 탭/창 닫기 시도 시 경고 (브라우저에 따라 동작)
+  window.addEventListener('beforeunload', (e) => {
+    // 관리자 모드에서 의도치 않은 이탈 방지
+    e.preventDefault();
+    e.returnValue = '';
+  });
+})();
 
 /* 전역 노출 */
 window.exitEditMode = exitEditMode;
@@ -1215,6 +2262,7 @@ window.closeBrand = closeBrand;
 window.exportData = exportData;
 window.importData = importData;
 window.showSettings = showSettings;
+window.showExitPrompt = showExitPrompt;
 window.alignMedia = alignMedia;
 window.clearLogo = clearLogo;
 window.clearThumb = clearThumb;
@@ -1222,244 +2270,245 @@ window.pickLogo = pickLogo;
 window.pickThumb = pickThumb;
 window.syncContent = syncContent;
 
+/* 초기화 */
+/* ============================================================
+   화면보호기 — 스티커 뱃지 플로팅 (5분 무조작 시 시작)
+============================================================ */
 (function() {
-  const sequence = [0,1,2,3]; let buf = []; let lastTs = 0;
-  document.querySelectorAll('.corner').forEach(el => {
-    el.addEventListener('click', () => {
-      const c = Number(el.dataset.corner); const now = Date.now();
-      if (now - lastTs > 3000) buf = []; lastTs = now; buf.push(c);
-      if (buf.length > sequence.length) buf.shift();
-      if (JSON.stringify(buf) === JSON.stringify(sequence)) { buf = []; showExitPrompt(); }
-    });
-  });
-})();
-function showExitPrompt() {
-  const wrap = document.createElement('div'); wrap.className = 'exit-prompt';
-  wrap.innerHTML = `<div class="exit-card"><h3>키오스크 종료</h3><p>전체화면을 해제하고 홈으로 돌아갑니다.</p><div class="actions"><button class="btn btn-ghost" id="ex-cancel">취소</button><button class="btn btn-primary" id="ex-ok">종료</button></div></div>`;
-  document.body.appendChild(wrap);
-  wrap.querySelector('#ex-cancel').onclick = () => wrap.remove();
-  wrap.querySelector('#ex-ok').onclick = () => { wrap.remove(); exitFullscreenSafe(); toast('키오스크를 종료했습니다'); };
-}
-window.showExitPrompt = showExitPrompt;
+  const SS_IDLE_MS  = 5 * 60 * 1000; // 5분
+  const BADGE_COUNT = 12;
 
-function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
-function enterFullscreen() { const el = document.documentElement; const req = el.requestFullscreen || el.webkitRequestFullscreen; if (req) { try { req.call(el); } catch {} } }
-function exitFullscreenSafe() { if (document.exitFullscreen) { try { document.exitFullscreen(); } catch {} } else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); }
-function updateFsState() { document.body.classList.toggle('is-fs', isFullscreen()); }
-document.getElementById('fs-toggle').addEventListener('click', e => { e.stopPropagation(); if (isFullscreen()) exitFullscreenSafe(); else enterFullscreen(); setTimeout(updateFsState, 100); });
-document.addEventListener('fullscreenchange', updateFsState);
-document.addEventListener('webkitfullscreenchange', updateFsState);
-document.getElementById('kiosk-home').addEventListener('click', e => {
-  if (e.target.closest('.brand-card') || e.target.closest('button') || e.target.closest('.corner') || e.target.closest('.home-footer')) return;
-  if (!isFullscreen()) enterFullscreen();
-});
-
-function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200); }
-function updateClock() { const d = new Date(); document.getElementById('clock').textContent = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
-updateClock(); setInterval(updateClock, 15000);
-
-(function() {
-  let idleTimer = null; const IDLE_MS = 120000;
-  function resetIdle() {
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-      const adminPanel = document.getElementById('admin-panel'); const adminEditor = document.getElementById('admin-editor-view'); const adminLogin = document.getElementById('admin-login');
-      if (!adminPanel.classList.contains('hidden') || !adminEditor.classList.contains('hidden') || !adminLogin.classList.contains('hidden')) return;
-      const modal = document.getElementById('brand-modal');
-      if (modal && !modal.classList.contains('hidden')) closeBrand();
-    }, IDLE_MS);
-  }
-  ['touchstart','touchend','click','mousemove','keydown'].forEach(evt => { document.addEventListener(evt, resetIdle, { passive: true }); });
-  resetIdle();
-})();
-
-(function() {
-  function applyPadding() {
-    const testEl = document.createElement('div');
-    testEl.style.cssText = 'position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);pointer-events:none;visibility:hidden;';
-    document.body.appendChild(testEl);
-    const cs = getComputedStyle(testEl);
-    const top = parseFloat(cs.paddingTop) || 0; const bot = parseFloat(cs.paddingBottom) || 0;
-    document.body.removeChild(testEl);
-    const headerPad = Math.max(top + 10, 52); const footerPad = Math.max(bot, 8);
-    const header = document.querySelector('#kiosk-home header'); if (header) header.style.paddingTop = headerPad + 'px';
-    document.querySelectorAll('.admin-header').forEach(h => { h.style.paddingTop = headerPad + 'px'; });
-    const footer = document.querySelector('.home-footer'); if (footer) footer.style.paddingBottom = footerPad + 'px';
-  }
-  applyPadding(); window.addEventListener('load', applyPadding); window.addEventListener('resize', applyPadding);
-  setTimeout(applyPadding, 300); setTimeout(applyPadding, 1000);
-})();
-
-(function() {
-  const btn = document.getElementById('fs-toggle'); if (!btn) return;
-  let timer = null;
-  function showBtn() { btn.classList.remove('hidden-auto'); clearTimeout(timer); timer = setTimeout(() => btn.classList.add('hidden-auto'), 3000); }
-  showBtn();
-  ['touchstart','mousemove','click'].forEach(evt => { document.getElementById('kiosk-home').addEventListener(evt, showBtn, { passive: true }); });
-})();
-
-if (window._bc) { window._bc.onmessage = async (e) => { if (e && e.data && e.data.type === 'brands-updated') { brands = await DB.load(); renderHome(); if (!document.getElementById('admin-panel').classList.contains('hidden')) renderAdminList(); } }; }
-window.addEventListener('storage', e => { if (e.key === DB.SETTINGS_KEY) { settings = DB.loadSettings(); renderHome(); } });
-
-let lastTouchEnd = 0;
-document.addEventListener('touchend', e => { const now = Date.now(); if (now - lastTouchEnd <= 300) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
-
-(function lockDown() {
-  const isInInput = (el) => { if (!el || !el.closest) return false; return !!(el.closest('input, textarea, [contenteditable="true"]')); };
-  document.addEventListener('contextmenu', e => { if (isInInput(e.target)) return; e.preventDefault(); });
-  document.addEventListener('keydown', e => {
-    const key = e.key; const ctrl = e.ctrlKey || e.metaKey; const inInput = isInInput(e.target);
-    if (key === 'F5' || key === 'F11' || key === 'F12') { e.preventDefault(); return; }
-    if (ctrl && ['r','R','w','W','n','N','t','T','p','P','s','S','o','O','u','U','h','H','f','F','g','G','l','L'].includes(key)) { e.preventDefault(); return; }
-    if (ctrl && e.shiftKey && ['i','I','j','J','c','C','r','R','t','T','n','N','w','W','p','P'].includes(key)) { e.preventDefault(); return; }
-    if (e.altKey && (key === 'ArrowLeft' || key === 'ArrowRight')) { e.preventDefault(); return; }
-    if (key === 'Backspace' && !inInput) { e.preventDefault(); return; }
-  });
-  document.addEventListener('wheel', e => { if (e.ctrlKey || e.metaKey) e.preventDefault(); }, { passive: false });
-  try { history.pushState({ lock: true }, '', location.href); window.addEventListener('popstate', () => { history.pushState({ lock: true }, '', location.href); }); } catch {}
-  document.addEventListener('dragstart', e => { if (e.target.closest && e.target.closest('.brand-list li')) return; e.preventDefault(); });
-  document.addEventListener('drop', e => e.preventDefault());
-  document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href]'); if (!a) return; const href = a.getAttribute('href') || ''; if (href.startsWith('#')) return; e.preventDefault(); });
-  window.addEventListener('beforeunload', (e) => { e.preventDefault(); e.returnValue = ''; });
-})();
-
-(function() {
-  const SS_IDLE_MS = 10000; const SS_CYCLE_MS = 15000; const BADGE_COUNT = 12;
-  const HEADLINES = ['셀렉상회\n특별한 셀렉 포인트\n확인하기','셀렉상회에서\n다양한 코디를\n확인해보세요','셀렉상회에서\n취향을\n발견해보세요','셀렉상회\n브랜드 히스토리를\n확인해보세요'];
-  const BADGE_POOL = [
-    { text: 'SELECT', lang:'en', emoji:false },{ text: 'CURATED', lang:'en', emoji:false },{ text: 'ONLY ONE', lang:'en', emoji:false },
-    { text: 'DISCOVER', lang:'en', emoji:false },{ text: 'YOUR STYLE', lang:'en', emoji:false },{ text: 'VINTAGE', lang:'en', emoji:false },
-    { text: 'RETRO', lang:'en', emoji:false },{ text: 'FASHION', lang:'en', emoji:false },{ text: 'BRAND', lang:'en', emoji:false },
-    { text: '선택', lang:'ko', emoji:false },{ text: '기준', lang:'ko', emoji:false },{ text: '단 하나', lang:'ko', emoji:false },
-    { text: '발견', lang:'ko', emoji:false },{ text: '취향', lang:'ko', emoji:false },{ text: '스타일', lang:'ko', emoji:false },
-    { text: '빈티지', lang:'ko', emoji:false },{ text: '큐레이션', lang:'ko', emoji:false },{ text: '브랜드', lang:'ko', emoji:false },
-    { text: '👍', lang:'emoji', emoji:true },{ text: '🔥', lang:'emoji', emoji:true },{ text: '✨', lang:'emoji', emoji:true },
-    { text: '💎', lang:'emoji', emoji:true },{ text: '🎯', lang:'emoji', emoji:true },{ text: '👗', lang:'emoji', emoji:true },
-    { text: '🧢', lang:'emoji', emoji:true },{ text: '⭐', lang:'emoji', emoji:true }
+  const HEADLINES = [
+    '셀렉상회\n특별한 셀렉 포인트\n확인하기',
+    '셀렉상회에서\n다양한 코디를\n확인해보세요',
+    '셀렉상회에서\n취향을\n발견해보세요',
+    '셀렉상회\n브랜드 히스토리를\n확인해보세요',
   ];
+
+  const BADGE_POOL = [
+    { text:'SELECT',     lang:'en', emoji:false }, { text:'CURATED',    lang:'en', emoji:false },
+    { text:'ONLY ONE',   lang:'en', emoji:false }, { text:'DISCOVER',   lang:'en', emoji:false },
+    { text:'YOUR STYLE', lang:'en', emoji:false }, { text:'VINTAGE',    lang:'en', emoji:false },
+    { text:'RETRO',      lang:'en', emoji:false }, { text:'FASHION',    lang:'en', emoji:false },
+    { text:'BRAND',      lang:'en', emoji:false }, { text:'UNIQUE',     lang:'en', emoji:false },
+    { text:'선택',  lang:'ko', emoji:false }, { text:'기준',   lang:'ko', emoji:false },
+    { text:'단 하나',lang:'ko', emoji:false }, { text:'발견',   lang:'ko', emoji:false },
+    { text:'취향',  lang:'ko', emoji:false }, { text:'스타일', lang:'ko', emoji:false },
+    { text:'빈티지',lang:'ko', emoji:false }, { text:'큐레이션',lang:'ko',emoji:false },
+    { text:'브랜드',lang:'ko', emoji:false },
+    { text:'👍', lang:'emoji', emoji:true }, { text:'🔥', lang:'emoji', emoji:true },
+    { text:'✨', lang:'emoji', emoji:true }, { text:'💎', lang:'emoji', emoji:true },
+    { text:'🎯', lang:'emoji', emoji:true }, { text:'👗', lang:'emoji', emoji:true },
+    { text:'🧢', lang:'emoji', emoji:true }, { text:'⭐', lang:'emoji', emoji:true },
+  ];
+
   const PALETTE = [
-    { bg:'#e8453c', color:'#fff' },{ bg:'#f5a623', color:'#111' },{ bg:'#f5e642', color:'#111' },
-    { bg:'#85d06e', color:'#111' },{ bg:'#6dd6c8', color:'#111' },{ bg:'#6b5ce7', color:'#fff' },
-    { bg:'#fff', color:'#111' },{ bg:'#d4e8a0', color:'#111' },{ bg:'#e8a020', color:'#111' },
-    { bg:'#ff85a1', color:'#111' },{ bg:'#5bc8fa', color:'#111' },{ bg:'#b8f0b8', color:'#111' }
+    {bg:'#e8453c',color:'#fff'},{bg:'#f5a623',color:'#111'},{bg:'#f5e642',color:'#111'},
+    {bg:'#85d06e',color:'#111'},{bg:'#6dd6c8',color:'#111'},{bg:'#6b5ce7',color:'#fff'},
+    {bg:'#fff',color:'#111'},{bg:'#d4e8a0',color:'#111'},{bg:'#e8a020',color:'#111'},
+    {bg:'#ff85a1',color:'#111'},{bg:'#5bc8fa',color:'#111'},{bg:'#b8f0b8',color:'#111'},
   ];
   const SHAPES = ['circle','pill','rect','tag','blob','stamp'];
-  const ZONES = [
-    { tx:1, ty:2, tw:26, th:28 },{ tx:36, ty:2, tw:26, th:16 },{ tx:72, ty:2, tw:26, th:28 },
-    { tx:1, ty:33, tw:20, th:34 },{ tx:78, ty:33, tw:20, th:34 },
-    { tx:1, ty:69, tw:26, th:26 },{ tx:36, ty:76, tw:26, th:20 },{ tx:72, ty:69, tw:26, th:26 }
+  const ZONES  = [
+    {tx:1, ty:2,  tw:26, th:28},{tx:36,ty:2,  tw:26,th:16},{tx:72,ty:2,  tw:26,th:28},
+    {tx:1, ty:33, tw:20, th:34},{tx:78,ty:33, tw:20,th:34},
+    {tx:1, ty:69, tw:26, th:26},{tx:36,ty:76, tw:26,th:20},{tx:72,ty:69, tw:26,th:26},
   ];
-  const ssEl = document.getElementById('screensaver');
+
+  // 화면보호기 HTML 삽입
+  const ssHtml = `
+    <div id="screensaver" style="position:fixed;inset:0;background:#000;z-index:8000;opacity:0;pointer-events:none;transition:opacity 1s ease;overflow:hidden;">
+      <div id="ss-brand-top" style="position:absolute;top:28px;left:50%;transform:translateX(-50%);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:clamp(16px,2.2vw,26px);letter-spacing:.35em;color:#fff;opacity:0.55;text-transform:uppercase;white-space:nowrap;z-index:11;pointer-events:none;padding-left:.35em;">SELECT MARKET</div>
+      <div id="ss-brand-bot" style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:clamp(16px,2.2vw,26px);letter-spacing:.35em;color:#fff;opacity:0.55;text-transform:uppercase;white-space:nowrap;z-index:11;pointer-events:none;padding-left:.35em;">SELECT MARKET</div>
+      <div id="ss-touch-hint" style="position:absolute;bottom:72px;left:50%;transform:translateX(-50%);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:clamp(14px,1.6vw,20px);letter-spacing:.08em;color:#fff;white-space:nowrap;z-index:11;pointer-events:none;text-align:center;animation:ss-hint-pulse 3s ease-in-out infinite;">화면을 터치하면 다양한 콘텐츠를 확인할 수 있습니다</div>
+      <div id="ss-badges" style="position:absolute;inset:0;pointer-events:none;z-index:3;"></div>
+      <div id="ss-headline-wrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.5vh,28px);">
+          <div id="ss-headline-text" style="font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:900;font-size:clamp(64px,12vw,150px);color:#fff;line-height:1.0;text-align:center;letter-spacing:-0.01em;word-break:keep-all;white-space:pre-line;opacity:0;transform:scale(0.93);transition:opacity .7s ease,transform .7s ease;text-shadow:0 0 40px rgba(0,0,0,0.25),0 2px 8px rgba(0,0,0,0.25);"></div>
+          <div id="ss-sub-text" style="font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:900;font-size:clamp(18px,2.8vw,36px);color:#fff;opacity:0;letter-spacing:.12em;text-align:center;white-space:nowrap;transition:opacity .7s ease .15s;line-height:1.6;">셀렉상회 브랜드 큐레이션</div>
+        </div>
+      </div>
+    </div>`;
+
+  // CSS 추가
+  const style = document.createElement('style');
+  style.textContent = `
+    #screensaver.ss-active    { opacity:1!important; pointer-events:all!important; }
+    #screensaver.ss-dismissing{ opacity:0!important; pointer-events:none!important; }
+    #ss-headline-text.ss-visible { opacity:1!important; transform:scale(1)!important; }
+    #ss-sub-text.ss-visible { opacity:0.75!important; }
+    @keyframes ss-hint-pulse { 0%,100%{opacity:.4;} 50%{opacity:.75;} }
+    .ss-badge { position:absolute; pointer-events:none; display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Black Han Sans','Noto Sans KR',sans-serif; font-weight:900; line-height:1.2; will-change:transform,opacity; animation:ss-float ease-in-out infinite; z-index:3; transition:opacity .9s ease; }
+    .ss-badge.circle { border-radius:50%; }
+    .ss-badge.pill   { border-radius:999px; }
+    .ss-badge.rect   { border-radius:16px; }
+    .ss-badge.tag    { border-radius:10px 10px 10px 0; }
+    .ss-badge.blob   { border-radius:60% 40% 55% 45%/45% 55% 45% 55%; }
+    .ss-badge.stamp  { border-radius:12px; outline:3px dashed rgba(0,0,0,.2); outline-offset:-6px; }
+    @keyframes ss-float { 0%{transform:var(--ss-rot) translateY(0);} 50%{transform:var(--ss-rot) translateY(var(--ss-fy,-10px));} 100%{transform:var(--ss-rot) translateY(0);} }
+  `;
+  document.head.appendChild(style);
+
+  // DOM 삽입 (body 맨 앞)
+  const ssWrap = document.createElement('div');
+  ssWrap.innerHTML = ssHtml;
+  document.body.insertBefore(ssWrap.firstElementChild, document.body.firstChild);
+
+  const ssEl     = document.getElementById('screensaver');
   const badgesEl = document.getElementById('ss-badges');
-  const hlTextEl = document.getElementById('ss-headline-text');
-  let ssActive = false, idleTimer = null, hlTimer = null, badgeTimers = [], hlIdx = 0;
-  function rnd(a,b){ return a + Math.random()*(b-a); }
+  const hlTextEl  = document.getElementById('ss-headline-text');
+  const subTextEl = document.getElementById('ss-sub-text');
+
+  let ssActive    = false;
+  let idleTimer   = null;
+  let hlTimer     = null;
+  let badgeTimers = [];
+  let hlIdx       = 0;
+
+  function rnd(a,b){ return a+Math.random()*(b-a); }
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
-  function getBadgeSize(shape, lang) {
-    const isEmoji = lang === 'emoji';
-    if (shape === 'circle') { const d = isEmoji ? rnd(70,110) : rnd(80,150); return { w:d, h:d }; }
-    if (shape === 'blob') { const d = rnd(90,140); return { w:d, h:d }; }
-    const h = isEmoji ? rnd(60,80) : (lang==='ko' ? rnd(60,85) : rnd(52,78));
-    const w = isEmoji ? h : (lang==='ko' ? rnd(100,170) : rnd(110,190));
-    return { w, h };
+
+  function isAdminOpen() {
+    return ['admin-login','admin-panel','admin-editor-view']
+      .some(id => !document.getElementById(id)?.classList.contains('hidden'));
   }
+
+  function getBadgeSize(shape, lang) {
+    const isEmoji = lang==='emoji';
+    if (shape==='circle'){ const d=isEmoji?rnd(70,110):rnd(80,150); return {w:d,h:d}; }
+    if (shape==='blob')  { const d=rnd(90,140); return {w:d,h:d}; }
+    const h=isEmoji?rnd(60,80):(lang==='ko'?rnd(60,85):rnd(52,78));
+    const w=isEmoji?h:(lang==='ko'?rnd(100,170):rnd(110,190));
+    return {w,h};
+  }
+
   function createBadge(word, zone) {
-    const shape = pick(SHAPES); const palette = pick(PALETTE);
-    const { w, h } = getBadgeSize(shape, word.lang);
-    const rot = rnd(-14,14); const fy = rnd(-13,-7); const dur = rnd(3.2,6.8); const delay = rnd(0,2.5);
-    const vw = window.innerWidth, vh = window.innerHeight;
-    const left = zone.tx/100*vw + rnd(0, Math.max(0, zone.tw/100*vw - w));
-    const top  = zone.ty/100*vh + rnd(0, Math.max(0, zone.th/100*vh - h));
-    let fs, px = '16px', py = '0';
-    if (word.emoji) { fs = Math.min(w,h)*0.5+'px'; px='0'; }
-    else if (shape==='circle'||shape==='blob') {
-      const ratio = word.lang==='ko'?0.22:0.20; const d=Math.min(w,h);
-      const len=word.text.replace(/\s/g,'').length; const scale=len<=2?1:len<=4?0.85:0.72;
-      fs=Math.round(d*ratio*scale)+'px'; px='12px';
+    const shape=pick(SHAPES), palette=pick(PALETTE), {w,h}=getBadgeSize(shape,word.lang);
+    const rot=rnd(-14,14), fy=rnd(-13,-7), dur=rnd(3.2,6.8), delay=rnd(0,2.5);
+    const vw=window.innerWidth, vh=window.innerHeight;
+    const left=zone.tx/100*vw+rnd(0,Math.max(0,zone.tw/100*vw-w));
+    const top =zone.ty/100*vh+rnd(0,Math.max(0,zone.th/100*vh-h));
+    let fs,px='16px';
+    if (word.emoji){ fs=Math.min(w,h)*.5+'px'; px='0'; }
+    else if (shape==='circle'||shape==='blob'){
+      const len=word.text.replace(/\s/g,'').length, scale=len<=2?1:len<=4?.85:.72;
+      fs=Math.round(Math.min(w,h)*(word.lang==='ko'?.22:.20)*scale)+'px'; px='12px';
     } else {
-      const usableH=h-20; const usableW=w-32; const len=word.text.replace(/\s/g,'').length;
-      const byH=Math.min(usableH*0.55,22); const byW=usableW/Math.max(len,1)*1.4;
+      const byH=Math.min((h-20)*.55,22), byW=(w-32)/Math.max(word.text.replace(/\s/g,'').length,1)*1.4;
       fs=Math.round(Math.min(byH,byW,20))+'px';
     }
-    const el = document.createElement('div');
-    el.className = 'ss-badge ' + shape;
-    el.style.cssText = `background:${palette.bg};color:${palette.color};left:${left}px;top:${top}px;width:${w}px;height:${h}px;font-size:${fs};padding:${py} ${px};overflow:hidden;--ss-rot:rotate(${rot}deg);--ss-fy:${fy}px;animation-duration:${dur}s;animation-delay:-${delay}s;opacity:0;transition:opacity 0.9s ease;`;
-    el.textContent = word.text;
+    const el=document.createElement('div');
+    el.className='ss-badge '+shape;
+    el.style.cssText=`background:${palette.bg};color:${palette.color};left:${left}px;top:${top}px;width:${w}px;height:${h}px;font-size:${fs};padding:0 ${px};overflow:hidden;--ss-rot:rotate(${rot}deg);--ss-fy:${fy}px;animation-duration:${dur}s;animation-delay:-${delay}s;opacity:0;transition:opacity .9s ease;`;
+    el.textContent=word.text;
     return el;
   }
+
   function buildAllBadges() {
-    badgesEl.innerHTML = '';
-    const words = shuffle(BADGE_POOL).slice(0, BADGE_COUNT);
-    const zones = shuffle(ZONES).slice(0, BADGE_COUNT);
-    words.forEach((w,i) => { const el = createBadge(w, zones[i%zones.length]); badgesEl.appendChild(el); });
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      [...badgesEl.children].forEach((el,i) => { setTimeout(() => { el.style.opacity='1'; }, i*60); });
+    badgesEl.innerHTML='';
+    const words=shuffle(BADGE_POOL).slice(0,BADGE_COUNT);
+    const zones=shuffle(ZONES).slice(0,BADGE_COUNT);
+    words.forEach((w,i)=>{ const el=createBadge(w,zones[i%zones.length]); badgesEl.appendChild(el); });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      [...badgesEl.children].forEach((el,i)=>setTimeout(()=>{el.style.opacity='1';},i*60));
     }));
   }
+
   function rotateSingleBadge() {
-    if (!ssActive || !badgesEl.children.length) return;
-    const children = [...badgesEl.children];
-    const target = children[Math.floor(Math.random()*children.length)];
-    const usedTexts = children.map(c => c.textContent);
-    const available = BADGE_POOL.filter(w => !usedTexts.includes(w.text));
-    const pool = available.length > 0 ? available : BADGE_POOL;
-    const newWord = pick(pool); const newZone = pick(ZONES);
-    const newEl = createBadge(newWord, newZone);
-    target.style.opacity = '0';
-    setTimeout(() => { if (!ssActive) return; badgesEl.replaceChild(newEl, target); requestAnimationFrame(() => requestAnimationFrame(() => { newEl.style.opacity='1'; })); }, 950);
+    if (!ssActive||!badgesEl.children.length) return;
+    const children=[...badgesEl.children];
+    const target=children[Math.floor(Math.random()*children.length)];
+    const used=children.map(c=>c.textContent);
+    const pool=(BADGE_POOL.filter(w=>!used.includes(w.text)).length>0)
+      ? BADGE_POOL.filter(w=>!used.includes(w.text)) : BADGE_POOL;
+    const newEl=createBadge(pick(pool),pick(ZONES));
+    target.style.opacity='0';
+    setTimeout(()=>{ if(!ssActive) return; badgesEl.replaceChild(newEl,target); requestAnimationFrame(()=>requestAnimationFrame(()=>{newEl.style.opacity='1';})); },950);
   }
+
   function scheduleBadgeRotations() {
-    badgeTimers.forEach(t => clearTimeout(t)); badgeTimers = [];
+    badgeTimers.forEach(t=>clearTimeout(t)); badgeTimers=[];
     if (!ssActive) return;
-    function scheduleNext() { if (!ssActive) return; const delay=rnd(2000,5000); const t=setTimeout(()=>{ rotateSingleBadge(); scheduleNext(); },delay); badgeTimers.push(t); }
-    scheduleNext();
+    (function next(){ if(!ssActive) return; const t=setTimeout(()=>{ rotateSingleBadge(); next(); },rnd(2000,5000)); badgeTimers.push(t); })();
   }
+
   function cycleHeadline() {
     if (!ssActive) return;
     hlTextEl.classList.remove('ss-visible');
-    setTimeout(() => {
-      if (!ssActive) return;
-      hlIdx = (hlIdx+1) % HEADLINES.length;
-      hlTextEl.textContent = HEADLINES[hlIdx];
-      requestAnimationFrame(() => requestAnimationFrame(() => { if (ssActive) hlTextEl.classList.add('ss-visible'); }));
-      hlTimer = setTimeout(cycleHeadline, 15000);
-    }, 700);
+    subTextEl.classList.remove('ss-visible');
+    setTimeout(()=>{
+      if(!ssActive) return;
+      hlIdx=(hlIdx+1)%HEADLINES.length;
+      hlTextEl.textContent=HEADLINES[hlIdx];
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        if(ssActive) {
+          hlTextEl.classList.add('ss-visible');
+          subTextEl.classList.add('ss-visible');
+        }
+      }));
+      hlTimer=setTimeout(cycleHeadline,15000);
+    },700);
   }
+
   function startScreensaver() {
-    if (ssActive) return;
-    const adminOpen = ['admin-login','admin-panel','admin-editor-view'].some(id => !document.getElementById(id)?.classList.contains('hidden'));
-    if (adminOpen) { resetIdleTimer(); return; }
-    ssActive = true;
-    hlIdx = Math.floor(Math.random()*HEADLINES.length);
-    hlTextEl.textContent = HEADLINES[hlIdx];
-    buildAllBadges(); ssEl.classList.add('ss-active');
-    setTimeout(() => { if (!ssActive) return; hlTextEl.classList.add('ss-visible'); hlTimer = setTimeout(cycleHeadline, 15000); scheduleBadgeRotations(); }, 500);
+    if (ssActive||isAdminOpen()) { resetIdleTimer(); return; }
+    ssActive=true;
+    hlIdx=Math.floor(Math.random()*HEADLINES.length);
+    hlTextEl.textContent=HEADLINES[hlIdx];
+    buildAllBadges();
+    ssEl.classList.add('ss-active');
+    setTimeout(()=>{
+      if(!ssActive) return;
+      hlTextEl.classList.add('ss-visible');
+      subTextEl.classList.add('ss-visible');
+      hlTimer=setTimeout(cycleHeadline,15000);
+      scheduleBadgeRotations();
+    },500);
   }
+
   function dismissScreensaver() {
     if (!ssActive) return;
-    ssActive = false; clearTimeout(hlTimer);
-    badgeTimers.forEach(t => clearTimeout(t)); badgeTimers = [];
+    ssActive=false; clearTimeout(hlTimer);
+    badgeTimers.forEach(t=>clearTimeout(t)); badgeTimers=[];
     hlTextEl.classList.remove('ss-visible');
+    subTextEl.classList.remove('ss-visible');
     ssEl.classList.add('ss-dismissing');
-    setTimeout(() => ssEl.classList.remove('ss-active','ss-dismissing'), 1100);
+    setTimeout(()=>ssEl.classList.remove('ss-active','ss-dismissing'),1100);
     resetIdleTimer();
   }
-  function resetIdleTimer() { clearTimeout(idleTimer); idleTimer = setTimeout(startScreensaver, SS_IDLE_MS); }
-  setTimeout(() => { const url = new URL(location.href); url.searchParams.set('_v', Date.now()); location.replace(url.toString()); }, 5*60*1000);
-  ['touchmove','mousemove','keydown','scroll'].forEach(evt => { document.addEventListener(evt, () => { if (ssActive) { dismissScreensaver(); return; } resetIdleTimer(); }, { passive: true }); });
-  document.addEventListener('touchstart', () => { if (ssActive) { dismissScreensaver(); return; } resetIdleTimer(); }, { passive: true });
-  ssEl.addEventListener('click', dismissScreensaver);
-  ssEl.addEventListener('touchstart', dismissScreensaver, { passive: true });
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    // 관리자/에디터 열려있으면 화면보호기 타이머 걸지 않음
+    if (isAdminOpen()) return;
+    idleTimer=setTimeout(startScreensaver, SS_IDLE_MS);
+  }
+
+  // 5분마다 자동 새로고침 (캐시 무효화)
+  setTimeout(()=>{ const url=new URL(location.href); url.searchParams.set('_v',Date.now()); location.replace(url.toString()); }, 5*60*1000);
+
+  ['touchmove','mousemove','keydown','scroll','input'].forEach(evt=>{
+    document.addEventListener(evt,()=>{ if(ssActive){dismissScreensaver();return;} resetIdleTimer(); },{passive:true});
+  });
+  document.addEventListener('touchstart',()=>{ if(ssActive){dismissScreensaver();return;} resetIdleTimer(); },{passive:true});
+
+  ssEl.addEventListener('click',      dismissScreensaver);
+  ssEl.addEventListener('touchstart', dismissScreensaver,{passive:true});
+
   resetIdleTimer();
 })();
 
-(async function init() {
-  try { brands = await DB.load(); } catch (e) { console.error(e); brands = []; }
-  renderHome(); updateFsState();
+/* 초기화 */
+  try { brands = await DB.load(); }
+  catch (e) { console.error(e); brands = []; }
+  renderHome();
+  updateFsState();
   if (location.hash === '#admin') openAdmin();
+  // 실시간 동기화 — 다른 기기에서 변경되면 자동 반영
   DB.listenBrands((list) => {
-    brands = list; renderHome();
+    brands = list;
+    renderHome();
     const adminPanel = document.getElementById('admin-panel');
     if (adminPanel && !adminPanel.classList.contains('hidden')) renderAdminBoardGrid();
   });

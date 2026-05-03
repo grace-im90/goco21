@@ -743,10 +743,99 @@
   .exit-card h3 { margin: 0 0 10px; }
   .exit-card p { opacity: .7; margin: 0 0 20px; font-size: 14px; }
   .exit-card .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* ============================================================
+     화면보호기
+  ============================================================ */
+  #screensaver {
+    position: fixed; inset: 0; background: #000;
+    z-index: 8000; opacity: 0; pointer-events: none;
+    transition: opacity 1s ease; overflow: hidden;
+  }
+  #screensaver.ss-active    { opacity: 1; pointer-events: all; }
+  #screensaver.ss-dismissing{ opacity: 0; pointer-events: none; }
+  #ss-headline-wrap {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; pointer-events: none;
+  }
+  #ss-headline-text {
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900; font-size: clamp(52px, 10vw, 120px);
+    color: #fff; line-height: 1.05; text-align: center;
+    letter-spacing: -0.01em; word-break: keep-all; white-space: pre-line;
+    opacity: 0; transform: scale(0.93);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    text-shadow: 0 0 40px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.25);
+  }
+  #ss-headline-text.ss-visible { opacity: 1; transform: scale(1); }
+  #ss-sub-text {
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900; font-size: clamp(16px, 2.4vw, 30px);
+    color: #fff; letter-spacing: .1em; text-align: center;
+    white-space: nowrap; opacity: 0;
+    transition: opacity 0.7s ease 0.15s; line-height: 1.6;
+    margin-top: clamp(12px, 2vh, 24px);
+  }
+  #ss-sub-text.ss-visible { opacity: 0.75; }
+  #ss-badges { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  #ss-brand-top, #ss-brand-bot {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-size: clamp(14px, 2vw, 22px); letter-spacing: .35em;
+    color: #fff; opacity: 0.5; text-transform: uppercase;
+    white-space: nowrap; z-index: 11; pointer-events: none; padding-left: .35em;
+  }
+  #ss-brand-top { top: 28px; }
+  #ss-brand-bot { bottom: 28px; }
+  #ss-touch-hint {
+    position: absolute; bottom: 62px; left: 50%; transform: translateX(-50%);
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-size: clamp(13px, 1.4vw, 18px); letter-spacing: .06em;
+    color: #fff; white-space: nowrap; z-index: 11; pointer-events: none;
+    text-align: center; animation: ss-hint-pulse 3s ease-in-out infinite;
+  }
+  @keyframes ss-hint-pulse { 0%,100%{opacity:.4;} 50%{opacity:.75;} }
+  .ss-badge {
+    position: absolute; pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900; line-height: 1.2;
+    will-change: transform, opacity;
+    animation: ss-float ease-in-out infinite;
+    z-index: 3; transition: opacity 0.9s ease;
+  }
+  .ss-badge.circle { border-radius: 50%; }
+  .ss-badge.pill   { border-radius: 999px; }
+  .ss-badge.rect   { border-radius: 16px; }
+  .ss-badge.tag    { border-radius: 10px 10px 10px 0; }
+  .ss-badge.blob   { border-radius: 60% 40% 55% 45%/45% 55% 45% 55%; }
+  .ss-badge.stamp  { border-radius: 12px; outline: 3px dashed rgba(0,0,0,.2); outline-offset: -6px; }
+  @keyframes ss-float {
+    0%  { transform: var(--ss-rot) translateY(0); }
+    50% { transform: var(--ss-rot) translateY(var(--ss-fy,-10px)); }
+    100%{ transform: var(--ss-rot) translateY(0); }
+  }
 </style>
 
 </head>
 <body>
+
+<!-- ================= 화면보호기 ================= -->
+
+<div id="screensaver">
+  <div id="ss-brand-top">SELECT MARKET</div>
+  <div id="ss-brand-bot">SELECT MARKET</div>
+  <div id="ss-touch-hint">화면을 터치하면 다양한 콘텐츠를 확인할 수 있습니다</div>
+  <div id="ss-badges"></div>
+  <div id="ss-headline-wrap">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div id="ss-headline-text"></div>
+      <div id="ss-sub-text">셀렉상회 브랜드 큐레이션</div>
+    </div>
+  </div>
+</div>
 
 <!-- ================= 홈 ================= -->
 
@@ -883,22 +972,6 @@ const DB = {
     subtitle: '궁금한 브랜드, 스타일링 등 확인해보세요!'
   },
 
-  async load() {
-    try {
-      const snap = await BRANDS_DOC.get();
-      if (snap.exists && snap.data().list && snap.data().list.length) {
-        const merged = mergeBrandCatalog(snap.data().list);
-        if (merged.changed) await this.save(merged.list);
-        return merged.list;
-      }
-      const seed = this._seedData();
-      await this.save(seed);
-      return seed;
-    } catch (e) {
-      console.error('[DB.load] Firebase 실패:', e);
-      return this._seedData();
-    }
-  },
   async load() {
     try {
       const snap = await BRANDS_DOC.get();
@@ -1112,7 +1185,6 @@ function mergeBrandCatalog(list, deletedIds = []) {
   let changed = false;
   const out = Array.isArray(list) ? list.map(b => Object.assign({}, b)) : [];
   DEFAULT_BRAND_CONTENT.forEach(catalogBrand => {
-    // 삭제된 브랜드는 복원하지 않음
     if (deletedIds.includes(catalogBrand.id)) return;
     const keys = [catalogBrand.name, ...(catalogBrand.aliases || [])].map(normalizeBrandName);
     const existing = out.find(b => {
@@ -2106,22 +2178,17 @@ setInterval(updateClock, 15000);
   const IDLE_MS = 120000; // 2분
 
   function isEditorOpen() {
-    const adminEditor = document.getElementById('admin-editor-view');
-    const adminPanel  = document.getElementById('admin-panel');
-    const adminLogin  = document.getElementById('admin-login');
     return (
-      !adminEditor.classList.contains('hidden') ||
-      !adminPanel.classList.contains('hidden')  ||
-      !adminLogin.classList.contains('hidden')
+      !document.getElementById('admin-editor-view').classList.contains('hidden') ||
+      !document.getElementById('admin-panel').classList.contains('hidden') ||
+      !document.getElementById('admin-login').classList.contains('hidden')
     );
   }
 
   function resetIdle() {
     clearTimeout(idleTimer);
-    // 에디터/관리자 패널이 열려있으면 타이머 자체를 걸지 않음
-    if (isEditorOpen()) return;
+    if (isEditorOpen()) return; // 에디터 열려있으면 타이머 걸지 않음
     idleTimer = setTimeout(() => {
-      // 타이머 발동 시점에도 한 번 더 체크
       if (isEditorOpen()) return;
       const modal = document.getElementById('brand-modal');
       if (modal && !modal.classList.contains('hidden')) closeBrand();
@@ -2133,7 +2200,7 @@ setInterval(updateClock, 15000);
   });
 
   resetIdle();
-})()
+})();
 
 /* Safe Area 동적 감지 — CSS 변수 + JS 직접 적용 */
 (function() {
@@ -2309,7 +2376,7 @@ window.syncContent = syncContent;
 
 /* 초기화 */
 /* ============================================================
-   화면보호기 — 스티커 뱃지 플로팅 (5분 무조작 시 시작)
+   화면보호기 — 5분 무조작 시 자동 실행
 ============================================================ */
 (function() {
   const SS_IDLE_MS  = 5 * 60 * 1000; // 5분
@@ -2323,20 +2390,15 @@ window.syncContent = syncContent;
   ];
 
   const BADGE_POOL = [
-    { text:'SELECT',     lang:'en', emoji:false }, { text:'CURATED',    lang:'en', emoji:false },
-    { text:'ONLY ONE',   lang:'en', emoji:false }, { text:'DISCOVER',   lang:'en', emoji:false },
-    { text:'YOUR STYLE', lang:'en', emoji:false }, { text:'VINTAGE',    lang:'en', emoji:false },
-    { text:'RETRO',      lang:'en', emoji:false }, { text:'FASHION',    lang:'en', emoji:false },
-    { text:'BRAND',      lang:'en', emoji:false }, { text:'UNIQUE',     lang:'en', emoji:false },
-    { text:'선택',  lang:'ko', emoji:false }, { text:'기준',   lang:'ko', emoji:false },
-    { text:'단 하나',lang:'ko', emoji:false }, { text:'발견',   lang:'ko', emoji:false },
-    { text:'취향',  lang:'ko', emoji:false }, { text:'스타일', lang:'ko', emoji:false },
-    { text:'빈티지',lang:'ko', emoji:false }, { text:'큐레이션',lang:'ko',emoji:false },
-    { text:'브랜드',lang:'ko', emoji:false },
-    { text:'👍', lang:'emoji', emoji:true }, { text:'🔥', lang:'emoji', emoji:true },
-    { text:'✨', lang:'emoji', emoji:true }, { text:'💎', lang:'emoji', emoji:true },
-    { text:'🎯', lang:'emoji', emoji:true }, { text:'👗', lang:'emoji', emoji:true },
-    { text:'🧢', lang:'emoji', emoji:true }, { text:'⭐', lang:'emoji', emoji:true },
+    {text:'SELECT',lang:'en'},{text:'CURATED',lang:'en'},{text:'ONLY ONE',lang:'en'},
+    {text:'DISCOVER',lang:'en'},{text:'YOUR STYLE',lang:'en'},{text:'VINTAGE',lang:'en'},
+    {text:'RETRO',lang:'en'},{text:'FASHION',lang:'en'},{text:'BRAND',lang:'en'},
+    {text:'선택',lang:'ko'},{text:'기준',lang:'ko'},{text:'단 하나',lang:'ko'},
+    {text:'발견',lang:'ko'},{text:'취향',lang:'ko'},{text:'스타일',lang:'ko'},
+    {text:'빈티지',lang:'ko'},{text:'큐레이션',lang:'ko'},{text:'브랜드',lang:'ko'},
+    {text:'👍',lang:'emoji'},{text:'🔥',lang:'emoji'},{text:'✨',lang:'emoji'},
+    {text:'💎',lang:'emoji'},{text:'🎯',lang:'emoji'},{text:'👗',lang:'emoji'},
+    {text:'🧢',lang:'emoji'},{text:'⭐',lang:'emoji'},
   ];
 
   const PALETTE = [
@@ -2347,92 +2409,49 @@ window.syncContent = syncContent;
   ];
   const SHAPES = ['circle','pill','rect','tag','blob','stamp'];
   const ZONES  = [
-    {tx:1, ty:2,  tw:26, th:28},{tx:36,ty:2,  tw:26,th:16},{tx:72,ty:2,  tw:26,th:28},
-    {tx:1, ty:33, tw:20, th:34},{tx:78,ty:33, tw:20,th:34},
-    {tx:1, ty:69, tw:26, th:26},{tx:36,ty:76, tw:26,th:20},{tx:72,ty:69, tw:26,th:26},
+    {tx:1,ty:2,tw:26,th:28},{tx:36,ty:2,tw:26,th:16},{tx:72,ty:2,tw:26,th:28},
+    {tx:1,ty:33,tw:20,th:34},{tx:78,ty:33,tw:20,th:34},
+    {tx:1,ty:69,tw:26,th:26},{tx:36,ty:76,tw:26,th:20},{tx:72,ty:69,tw:26,th:26},
   ];
-
-  // 화면보호기 HTML 삽입
-  const ssHtml = `
-    <div id="screensaver" style="position:fixed;inset:0;background:#000;z-index:8000;opacity:0;pointer-events:none;transition:opacity 1s ease;overflow:hidden;">
-      <div id="ss-brand-top" style="position:absolute;top:28px;left:50%;transform:translateX(-50%);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:clamp(16px,2.2vw,26px);letter-spacing:.35em;color:#fff;opacity:0.55;text-transform:uppercase;white-space:nowrap;z-index:11;pointer-events:none;padding-left:.35em;">SELECT MARKET</div>
-      <div id="ss-brand-bot" style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:clamp(16px,2.2vw,26px);letter-spacing:.35em;color:#fff;opacity:0.55;text-transform:uppercase;white-space:nowrap;z-index:11;pointer-events:none;padding-left:.35em;">SELECT MARKET</div>
-      <div id="ss-touch-hint" style="position:absolute;bottom:72px;left:50%;transform:translateX(-50%);font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-size:clamp(14px,1.6vw,20px);letter-spacing:.08em;color:#fff;white-space:nowrap;z-index:11;pointer-events:none;text-align:center;animation:ss-hint-pulse 3s ease-in-out infinite;">화면을 터치하면 다양한 콘텐츠를 확인할 수 있습니다</div>
-      <div id="ss-badges" style="position:absolute;inset:0;pointer-events:none;z-index:3;"></div>
-      <div id="ss-headline-wrap" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none;">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.5vh,28px);">
-          <div id="ss-headline-text" style="font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:900;font-size:clamp(64px,12vw,150px);color:#fff;line-height:1.0;text-align:center;letter-spacing:-0.01em;word-break:keep-all;white-space:pre-line;opacity:0;transform:scale(0.93);transition:opacity .7s ease,transform .7s ease;text-shadow:0 0 40px rgba(0,0,0,0.25),0 2px 8px rgba(0,0,0,0.25);"></div>
-          <div id="ss-sub-text" style="font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:900;font-size:clamp(18px,2.8vw,36px);color:#fff;opacity:0;letter-spacing:.12em;text-align:center;white-space:nowrap;transition:opacity .7s ease .15s;line-height:1.6;">셀렉상회 브랜드 큐레이션</div>
-        </div>
-      </div>
-    </div>`;
-
-  // CSS 추가
-  const style = document.createElement('style');
-  style.textContent = `
-    #screensaver.ss-active    { opacity:1!important; pointer-events:all!important; }
-    #screensaver.ss-dismissing{ opacity:0!important; pointer-events:none!important; }
-    #ss-headline-text.ss-visible { opacity:1!important; transform:scale(1)!important; }
-    #ss-sub-text.ss-visible { opacity:0.75!important; }
-    @keyframes ss-hint-pulse { 0%,100%{opacity:.4;} 50%{opacity:.75;} }
-    .ss-badge { position:absolute; pointer-events:none; display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Black Han Sans','Noto Sans KR',sans-serif; font-weight:900; line-height:1.2; will-change:transform,opacity; animation:ss-float ease-in-out infinite; z-index:3; transition:opacity .9s ease; }
-    .ss-badge.circle { border-radius:50%; }
-    .ss-badge.pill   { border-radius:999px; }
-    .ss-badge.rect   { border-radius:16px; }
-    .ss-badge.tag    { border-radius:10px 10px 10px 0; }
-    .ss-badge.blob   { border-radius:60% 40% 55% 45%/45% 55% 45% 55%; }
-    .ss-badge.stamp  { border-radius:12px; outline:3px dashed rgba(0,0,0,.2); outline-offset:-6px; }
-    @keyframes ss-float { 0%{transform:var(--ss-rot) translateY(0);} 50%{transform:var(--ss-rot) translateY(var(--ss-fy,-10px));} 100%{transform:var(--ss-rot) translateY(0);} }
-  `;
-  document.head.appendChild(style);
-
-  // DOM 삽입 (body 맨 앞)
-  const ssWrap = document.createElement('div');
-  ssWrap.innerHTML = ssHtml;
-  document.body.insertBefore(ssWrap.firstElementChild, document.body.firstChild);
 
   const ssEl     = document.getElementById('screensaver');
   const badgesEl = document.getElementById('ss-badges');
-  const hlTextEl  = document.getElementById('ss-headline-text');
-  const subTextEl = document.getElementById('ss-sub-text');
+  const hlTextEl = document.getElementById('ss-headline-text');
+  const subTextEl= document.getElementById('ss-sub-text');
 
-  let ssActive    = false;
-  let idleTimer   = null;
-  let hlTimer     = null;
-  let badgeTimers = [];
-  let hlIdx       = 0;
+  let ssActive=false, idleTimer=null, hlTimer=null, badgeTimers=[], hlIdx=0;
 
-  function rnd(a,b){ return a+Math.random()*(b-a); }
-  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  function shuffle(arr){return [...arr].sort(()=>Math.random()-0.5);}
 
-  function isAdminOpen() {
+  function isAdminOpen(){
     return ['admin-login','admin-panel','admin-editor-view']
-      .some(id => !document.getElementById(id)?.classList.contains('hidden'));
+      .some(id=>!document.getElementById(id)?.classList.contains('hidden'));
   }
 
-  function getBadgeSize(shape, lang) {
-    const isEmoji = lang==='emoji';
-    if (shape==='circle'){ const d=isEmoji?rnd(70,110):rnd(80,150); return {w:d,h:d}; }
-    if (shape==='blob')  { const d=rnd(90,140); return {w:d,h:d}; }
+  function getBadgeSize(shape,lang){
+    const isEmoji=lang==='emoji';
+    if(shape==='circle'){const d=isEmoji?rnd(70,110):rnd(80,140);return{w:d,h:d};}
+    if(shape==='blob'){const d=rnd(90,130);return{w:d,h:d};}
     const h=isEmoji?rnd(60,80):(lang==='ko'?rnd(60,85):rnd(52,78));
     const w=isEmoji?h:(lang==='ko'?rnd(100,170):rnd(110,190));
-    return {w,h};
+    return{w,h};
   }
 
-  function createBadge(word, zone) {
-    const shape=pick(SHAPES), palette=pick(PALETTE), {w,h}=getBadgeSize(shape,word.lang);
-    const rot=rnd(-14,14), fy=rnd(-13,-7), dur=rnd(3.2,6.8), delay=rnd(0,2.5);
-    const vw=window.innerWidth, vh=window.innerHeight;
+  function createBadge(word,zone){
+    const shape=pick(SHAPES),palette=pick(PALETTE),{w,h}=getBadgeSize(shape,word.lang);
+    const rot=rnd(-14,14),fy=rnd(-13,-7),dur=rnd(3.2,6.8),delay=rnd(0,2.5);
+    const vw=window.innerWidth,vh=window.innerHeight;
     const left=zone.tx/100*vw+rnd(0,Math.max(0,zone.tw/100*vw-w));
-    const top =zone.ty/100*vh+rnd(0,Math.max(0,zone.th/100*vh-h));
+    const top=zone.ty/100*vh+rnd(0,Math.max(0,zone.th/100*vh-h));
     let fs,px='16px';
-    if (word.emoji){ fs=Math.min(w,h)*.5+'px'; px='0'; }
-    else if (shape==='circle'||shape==='blob'){
-      const len=word.text.replace(/\s/g,'').length, scale=len<=2?1:len<=4?.85:.72;
-      fs=Math.round(Math.min(w,h)*(word.lang==='ko'?.22:.20)*scale)+'px'; px='12px';
-    } else {
-      const byH=Math.min((h-20)*.55,22), byW=(w-32)/Math.max(word.text.replace(/\s/g,'').length,1)*1.4;
+    if(word.lang==='emoji'){fs=Math.min(w,h)*.5+'px';px='0';}
+    else if(shape==='circle'||shape==='blob'){
+      const len=word.text.replace(/\s/g,'').length,scale=len<=2?1:len<=4?.85:.72;
+      fs=Math.round(Math.min(w,h)*(word.lang==='ko'?.22:.20)*scale)+'px';px='12px';
+    }else{
+      const byH=Math.min((h-20)*.55,22),byW=(w-32)/Math.max(word.text.replace(/\s/g,'').length,1)*1.4;
       fs=Math.round(Math.min(byH,byW,20))+'px';
     }
     const el=document.createElement('div');
@@ -2442,61 +2461,57 @@ window.syncContent = syncContent;
     return el;
   }
 
-  function buildAllBadges() {
+  function buildAllBadges(){
     badgesEl.innerHTML='';
     const words=shuffle(BADGE_POOL).slice(0,BADGE_COUNT);
     const zones=shuffle(ZONES).slice(0,BADGE_COUNT);
-    words.forEach((w,i)=>{ const el=createBadge(w,zones[i%zones.length]); badgesEl.appendChild(el); });
+    words.forEach((w,i)=>{const el=createBadge(w,zones[i%zones.length]);badgesEl.appendChild(el);});
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       [...badgesEl.children].forEach((el,i)=>setTimeout(()=>{el.style.opacity='1';},i*60));
     }));
   }
 
-  function rotateSingleBadge() {
-    if (!ssActive||!badgesEl.children.length) return;
+  function rotateSingleBadge(){
+    if(!ssActive||!badgesEl.children.length)return;
     const children=[...badgesEl.children];
     const target=children[Math.floor(Math.random()*children.length)];
     const used=children.map(c=>c.textContent);
-    const pool=(BADGE_POOL.filter(w=>!used.includes(w.text)).length>0)
-      ? BADGE_POOL.filter(w=>!used.includes(w.text)) : BADGE_POOL;
-    const newEl=createBadge(pick(pool),pick(ZONES));
+    const pool=BADGE_POOL.filter(w=>!used.includes(w.text));
+    const newEl=createBadge(pick(pool.length?pool:BADGE_POOL),pick(ZONES));
     target.style.opacity='0';
-    setTimeout(()=>{ if(!ssActive) return; badgesEl.replaceChild(newEl,target); requestAnimationFrame(()=>requestAnimationFrame(()=>{newEl.style.opacity='1';})); },950);
+    setTimeout(()=>{if(!ssActive)return;badgesEl.replaceChild(newEl,target);requestAnimationFrame(()=>requestAnimationFrame(()=>{newEl.style.opacity='1';}));},950);
   }
 
-  function scheduleBadgeRotations() {
-    badgeTimers.forEach(t=>clearTimeout(t)); badgeTimers=[];
-    if (!ssActive) return;
-    (function next(){ if(!ssActive) return; const t=setTimeout(()=>{ rotateSingleBadge(); next(); },rnd(2000,5000)); badgeTimers.push(t); })();
+  function scheduleBadgeRotations(){
+    badgeTimers.forEach(t=>clearTimeout(t));badgeTimers=[];
+    if(!ssActive)return;
+    (function next(){if(!ssActive)return;const t=setTimeout(()=>{rotateSingleBadge();next();},rnd(2000,5000));badgeTimers.push(t);})();
   }
 
-  function cycleHeadline() {
-    if (!ssActive) return;
+  function cycleHeadline(){
+    if(!ssActive)return;
     hlTextEl.classList.remove('ss-visible');
     subTextEl.classList.remove('ss-visible');
     setTimeout(()=>{
-      if(!ssActive) return;
+      if(!ssActive)return;
       hlIdx=(hlIdx+1)%HEADLINES.length;
       hlTextEl.textContent=HEADLINES[hlIdx];
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        if(ssActive) {
-          hlTextEl.classList.add('ss-visible');
-          subTextEl.classList.add('ss-visible');
-        }
+        if(ssActive){hlTextEl.classList.add('ss-visible');subTextEl.classList.add('ss-visible');}
       }));
       hlTimer=setTimeout(cycleHeadline,15000);
     },700);
   }
 
-  function startScreensaver() {
-    if (ssActive||isAdminOpen()) { resetIdleTimer(); return; }
+  function startScreensaver(){
+    if(ssActive||isAdminOpen()){resetIdleTimer();return;}
     ssActive=true;
     hlIdx=Math.floor(Math.random()*HEADLINES.length);
     hlTextEl.textContent=HEADLINES[hlIdx];
     buildAllBadges();
     ssEl.classList.add('ss-active');
     setTimeout(()=>{
-      if(!ssActive) return;
+      if(!ssActive)return;
       hlTextEl.classList.add('ss-visible');
       subTextEl.classList.add('ss-visible');
       hlTimer=setTimeout(cycleHeadline,15000);
@@ -2504,10 +2519,10 @@ window.syncContent = syncContent;
     },500);
   }
 
-  function dismissScreensaver() {
-    if (!ssActive) return;
-    ssActive=false; clearTimeout(hlTimer);
-    badgeTimers.forEach(t=>clearTimeout(t)); badgeTimers=[];
+  function dismissScreensaver(){
+    if(!ssActive)return;
+    ssActive=false;clearTimeout(hlTimer);
+    badgeTimers.forEach(t=>clearTimeout(t));badgeTimers=[];
     hlTextEl.classList.remove('ss-visible');
     subTextEl.classList.remove('ss-visible');
     ssEl.classList.add('ss-dismissing');
@@ -2515,28 +2530,29 @@ window.syncContent = syncContent;
     resetIdleTimer();
   }
 
-  function resetIdleTimer() {
+  function resetIdleTimer(){
     clearTimeout(idleTimer);
-    // 관리자/에디터 열려있으면 화면보호기 타이머 걸지 않음
-    if (isAdminOpen()) return;
-    idleTimer=setTimeout(startScreensaver, SS_IDLE_MS);
+    if(isAdminOpen())return;
+    idleTimer=setTimeout(startScreensaver,SS_IDLE_MS);
   }
 
   // 5분마다 자동 새로고침 (캐시 무효화)
-  setTimeout(()=>{ const url=new URL(location.href); url.searchParams.set('_v',Date.now()); location.replace(url.toString()); }, 5*60*1000);
+  setTimeout(()=>{
+    const url=new URL(location.href);
+    url.searchParams.set('_v',Date.now());
+    location.replace(url.toString());
+  },5*60*1000);
 
   ['touchmove','mousemove','keydown','scroll','input'].forEach(evt=>{
-    document.addEventListener(evt,()=>{ if(ssActive){dismissScreensaver();return;} resetIdleTimer(); },{passive:true});
+    document.addEventListener(evt,()=>{if(ssActive){dismissScreensaver();return;}resetIdleTimer();},{passive:true});
   });
-  document.addEventListener('touchstart',()=>{ if(ssActive){dismissScreensaver();return;} resetIdleTimer(); },{passive:true});
-
-  ssEl.addEventListener('click',      dismissScreensaver);
-  ssEl.addEventListener('touchstart', dismissScreensaver,{passive:true});
+  document.addEventListener('touchstart',()=>{if(ssActive){dismissScreensaver();return;}resetIdleTimer();},{passive:true});
+  ssEl.addEventListener('click',dismissScreensaver);
+  ssEl.addEventListener('touchstart',dismissScreensaver,{passive:true});
 
   resetIdleTimer();
 })();
 
-/* 초기화 */
 (async function init() {
   try { brands = await DB.load(); }
   catch (e) { console.error(e); brands = []; }

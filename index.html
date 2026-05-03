@@ -780,12 +780,12 @@
     opacity: 0;
     transform: scale(0.93);
     transition: opacity 0.7s ease, transform 0.7s ease;
-    /* 뒤 스티커와 구분 — 연한 그림자 */
+    /* 그림자만 25% 불투명 */
     text-shadow:
-      0 0 30px rgba(0,0,0,0.35),
-      0 2px 6px rgba(0,0,0,0.3);
+      0 0 40px rgba(0,0,0,0.25),
+      0 2px 8px rgba(0,0,0,0.25);
   }
-  #ss-headline-text.ss-visible { opacity: 0.25; transform: scale(1); }
+  #ss-headline-text.ss-visible { opacity: 1; transform: scale(1); }
 
   /* 뱃지 컨테이너 — 전체 화면, 헤드라인 뒤 */
   #ss-badges {
@@ -2537,19 +2537,15 @@ window.syncContent = syncContent;
   // 중앙 구역은 헤드라인 영역 → 뱃지를 조금만 겹치게 배치
   // top/left/w/h 모두 % 단위
   const ZONES = [
-    { tx:2,  ty:3,  tw:28, th:30 }, // 좌상
-    { tx:35, ty:3,  tw:28, th:20 }, // 중상
-    { tx:68, ty:3,  tw:28, th:30 }, // 우상
-    { tx:2,  ty:35, tw:22, th:30 }, // 좌중
-    { tx:74, ty:35, tw:22, th:30 }, // 우중
-    { tx:2,  ty:65, tw:28, th:28 }, // 좌하
-    { tx:35, ty:72, tw:28, th:22 }, // 중하
-    { tx:68, ty:65, tw:28, th:28 }, // 우하
-    // 헤드라인 모서리 약간 겹치는 구역 (조금만)
-    { tx:20, ty:28, tw:18, th:22 }, // 헤드라인 좌
-    { tx:60, ty:28, tw:18, th:22 }, // 헤드라인 우
-    { tx:30, ty:55, tw:18, th:15 }, // 헤드라인 아래좌
-    { tx:50, ty:55, tw:18, th:15 }, // 헤드라인 아래우
+    // 주변 8개 구역만 사용 — 중앙 헤드라인과 겹치지 않음
+    { tx:1,  ty:2,  tw:26, th:28 }, // 좌상
+    { tx:36, ty:2,  tw:26, th:16 }, // 중상
+    { tx:72, ty:2,  tw:26, th:28 }, // 우상
+    { tx:1,  ty:33, tw:20, th:34 }, // 좌중
+    { tx:78, ty:33, tw:20, th:34 }, // 우중
+    { tx:1,  ty:69, tw:26, th:26 }, // 좌하
+    { tx:36, ty:76, tw:26, th:20 }, // 중하
+    { tx:72, ty:69, tw:26, th:26 }, // 우하
   ];
 
   const ssEl     = document.getElementById('screensaver');
@@ -2600,13 +2596,31 @@ window.syncContent = syncContent;
     const left = zoneLeft + rnd(0, Math.max(0, zoneW - w));
     const top  = zoneTop  + rnd(0, Math.max(0, zoneH - h));
 
-    let fs;
+    let fs, px, py;
     if (word.emoji) {
-      fs = Math.min(w,h) * 0.5 + 'px';
+      // 이모지: 컨테이너의 50%
+      fs = Math.min(w, h) * 0.5 + 'px';
+      px = '0'; py = '0';
     } else if (shape === 'circle' || shape === 'blob') {
-      fs = (word.lang==='ko' ? Math.min(w,h)*0.28 : Math.min(w,h)*0.26) + 'px';
+      // 원형/블롭: 지름의 최대 24% — 줄바꿈 있는 짧은 단어 기준
+      const ratio = word.lang === 'ko' ? 0.22 : 0.20;
+      const d = Math.min(w, h);
+      // 글자 수 기반으로 추가 축소
+      const len = word.text.replace(/\s/g,'').length;
+      const scale = len <= 2 ? 1 : len <= 4 ? 0.85 : 0.72;
+      fs = Math.round(d * ratio * scale) + 'px';
+      px = '12px'; py = '0';
     } else {
-      fs = (word.lang==='ko' ? '18px' : '15px');
+      // pill / rect / tag / stamp: 높이 기준, 패딩 고려
+      const usableH = h - 20; // 상하 패딩 각 10
+      const usableW = w - 32; // 좌우 패딩 각 16
+      const len = word.text.replace(/\s/g,'').length;
+      // 한 줄에 들어가도록 폰트 계산
+      const byH = Math.min(usableH * 0.55, 22);
+      // 글자수 많으면 더 줄임
+      const byW = usableW / Math.max(len, 1) * 1.4;
+      fs = Math.round(Math.min(byH, byW, 20)) + 'px';
+      px = '16px'; py = '0';
     }
 
     const el = document.createElement('div');
@@ -2617,7 +2631,8 @@ window.syncContent = syncContent;
       left:${left}px; top:${top}px;
       width:${w}px; height:${h}px;
       font-size:${fs};
-      padding:${(shape==='pill'||shape==='rect'||shape==='tag'||shape==='stamp') ? '0 16px' : '0'};
+      padding:${py} ${px};
+      overflow:hidden;
       --ss-rot:rotate(${rot}deg);
       --ss-fy:${fy}px;
       animation-duration:${dur}s;

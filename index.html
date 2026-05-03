@@ -899,15 +899,53 @@ const DB = {
       return this._seedData();
     }
   },
+  async load() {
+    try {
+      const snap = await BRANDS_DOC.get();
+      if (snap.exists && snap.data().list && snap.data().list.length) {
+        const deletedIds = snap.data().deletedIds || [];
+        const merged = mergeBrandCatalog(snap.data().list, deletedIds);
+        if (merged.changed) await this.save(merged.list);
+        return merged.list;
+      }
+      const seed = this._seedData();
+      await this.save(seed);
+      return seed;
+    } catch (e) {
+      console.error('[DB.load] Firebase 실패:', e);
+      return this._seedData();
+    }
+  },
   async save(data) {
     try {
-      await BRANDS_DOC.set({ list: data });
+      const deletedIds = await this._getDeletedIds();
+      await BRANDS_DOC.set({ list: data, deletedIds });
       if (window._bc) try { window._bc.postMessage({ type: 'brands-updated' }); } catch {}
       return true;
     } catch (e) {
       console.error('[DB.save] Firebase 실패:', e);
       return false;
     }
+  },
+  async deleteBrandById(id) {
+    try {
+      const snap = await BRANDS_DOC.get();
+      const data = snap.exists ? snap.data() : {};
+      const list = (data.list || []).filter(b => b.id !== id);
+      const deletedIds = [...new Set([...(data.deletedIds || []), id])];
+      await BRANDS_DOC.set({ list, deletedIds });
+      if (window._bc) try { window._bc.postMessage({ type: 'brands-updated' }); } catch {}
+      return true;
+    } catch (e) {
+      console.error('[DB.deleteBrandById] Firebase 실패:', e);
+      return false;
+    }
+  },
+  async _getDeletedIds() {
+    try {
+      const snap = await BRANDS_DOC.get();
+      return snap.exists ? (snap.data().deletedIds || []) : [];
+    } catch { return []; }
   },
   listenBrands(callback) {
     return BRANDS_DOC.onSnapshot((snap) => {
@@ -1070,10 +1108,12 @@ function normalizeBrandName(name) {
 function isEmptyContent(html) {
   return !String(html || '').trim() || /준비된 콘텐츠가 없습니다/.test(String(html));
 }
-function mergeBrandCatalog(list) {
+function mergeBrandCatalog(list, deletedIds = []) {
   let changed = false;
   const out = Array.isArray(list) ? list.map(b => Object.assign({}, b)) : [];
   DEFAULT_BRAND_CONTENT.forEach(catalogBrand => {
+    // 삭제된 브랜드는 복원하지 않음
+    if (deletedIds.includes(catalogBrand.id)) return;
     const keys = [catalogBrand.name, ...(catalogBrand.aliases || [])].map(normalizeBrandName);
     const existing = out.find(b => {
       const brandKey = normalizeBrandName(b.name);
@@ -1357,12 +1397,10 @@ function renderAdminBoardGrid() {
       const bid = e.currentTarget.dataset.id;
       const br = brands.find(x => x.id === bid);
       if (!confirm(`"${br?.name}" 보드를 삭제할까요?`)) return;
-      const cloudUrls = extractCloudinaryUrls(br);
       brands = brands.filter(x => x.id !== bid);
-      await DB.save(brands);
+      await DB.deleteBrandById(bid);
       renderAdminBoardGrid();
       toast('삭제했습니다');
-      if (cloudUrls.length) showCloudinaryDeleteInfo(br.name, cloudUrls);
     };
     card.querySelector('.card-delete-btn').addEventListener('touchend', deleteHandler);
     card.querySelector('.card-delete-btn').addEventListener('click', deleteHandler);
@@ -1520,13 +1558,12 @@ async function deleteBrand() {
   const b = brands.find(x => x.id === currentEditingId);
   if (!b) return;
   if (!confirm(`"${b.name}" 보드를 삭제할까요?`)) return;
-  const cloudUrls = extractCloudinaryUrls(b);
+  const deletedId = currentEditingId;
   brands = brands.filter(x => x.id !== currentEditingId);
   currentEditingId = brands[0]?.id || null;
-  await DB.save(brands);
+  await DB.deleteBrandById(deletedId);
   backToAdminList();
   toast('삭제했습니다');
-  if (cloudUrls.length) showCloudinaryDeleteInfo(b.name, cloudUrls);
 }
 
 /* --- 에디터 렌더 --- */

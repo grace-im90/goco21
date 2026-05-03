@@ -2537,6 +2537,7 @@ window.syncContent = syncContent;
 })();
 
 /* 초기화 */
+(async function init() {
   try { brands = await DB.load(); }
   catch (e) { console.error(e); brands = []; }
   renderHome();

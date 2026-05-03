@@ -11,6 +11,8 @@
 <title>셀렉상회 큐레이션 — Kiosk</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@700;900&display=swap');
+
   /* ==========================
      기본
   ========================== */
@@ -744,10 +746,169 @@
   .exit-card h3 { margin: 0 0 10px; }
   .exit-card p { opacity: .7; margin: 0 0 20px; font-size: 14px; }
   .exit-card .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* ============================================================
+     화면보호기 — 스티커 뱃지 플로팅 디자인
+  ============================================================ */
+  #screensaver {
+    position: fixed; inset: 0;
+    background: #000;
+    z-index: 8000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1s ease;
+    overflow: hidden;
+  }
+  #screensaver.ss-active   { opacity: 1; pointer-events: all; }
+  #screensaver.ss-dismissing { opacity: 0; pointer-events: none; }
+
+  /* 중앙 메인 헤드라인 */
+  #ss-headline {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2; pointer-events: none;
+    flex-direction: column; gap: 0;
+  }
+  #ss-headline-text {
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900;
+    font-size: clamp(52px, 10vw, 130px);
+    color: #fff;
+    line-height: 1.05;
+    text-align: center;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  #ss-headline-text.ss-visible {
+    opacity: 1; transform: scale(1);
+  }
+
+  /* 상단 브랜드 */
+  #ss-brand-top {
+    position: absolute; top: 28px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-size: 11px; letter-spacing: 0.45em;
+    color: #fff; opacity: 0.14;
+    text-transform: uppercase; white-space: nowrap;
+    z-index: 5; pointer-events: none;
+    padding-left: 0.45em;
+  }
+  /* 하단 브랜드 */
+  #ss-brand-bot {
+    position: absolute; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-size: 11px; letter-spacing: 0.45em;
+    color: #fff; opacity: 0.14;
+    text-transform: uppercase; white-space: nowrap;
+    z-index: 5; pointer-events: none;
+    padding-left: 0.45em;
+  }
+
+  /* 터치 힌트 */
+  #ss-touch-hint {
+    position: absolute; bottom: 56px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-size: 10px; letter-spacing: 0.38em;
+    color: #fff; opacity: 0;
+    text-transform: uppercase; white-space: nowrap;
+    z-index: 5; pointer-events: none;
+    padding-left: 0.38em;
+    animation: ss-hint 6s ease-in-out 4s infinite;
+  }
+  @keyframes ss-hint {
+    0%,100% { opacity:0; } 35%,65% { opacity:0.25; }
+  }
+
+  /* 뱃지 공통 */
+  .ss-badge {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900;
+    line-height: 1.2;
+    will-change: transform;
+    animation: ss-float linear infinite;
+  }
+
+  /* 원형 뱃지 */
+  .ss-badge.circle {
+    border-radius: 50%;
+    padding: 0;
+  }
+  /* 둥근 사각형 */
+  .ss-badge.pill {
+    border-radius: 18px;
+    padding: 14px 20px;
+  }
+  /* 삐뚤어진 사각형 (rotate로 표현) */
+  .ss-badge.tag {
+    border-radius: 12px;
+    padding: 12px 18px;
+  }
+  /* 톱니 뱃지 (badge shape via clip-path) */
+  .ss-badge.starburst {
+    border-radius: 50%;
+    padding: 0;
+  }
+
+  .ss-badge-inner {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 2px; width: 100%; height: 100%;
+  }
+  .ss-badge-main {
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+  }
+  .ss-badge-sub {
+    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+    font-weight: 900;
+    opacity: 0.75;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+  }
+
+  /* 플로팅 애니메이션 — 각 뱃지별로 duration/delay 다르게 */
+  @keyframes ss-float {
+    0%   { transform: var(--ss-rot) translateY(0px); }
+    50%  { transform: var(--ss-rot) translateY(var(--ss-float-y, -14px)); }
+    100% { transform: var(--ss-rot) translateY(0px); }
+  }
+
+  /* 뱃지 컨테이너 (전체 자리 잡기 용) */
+  #ss-badges { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 </style>
 
 </head>
 <body>
+
+<!-- ================= 화면보호기 ================= -->
+
+<div id="screensaver">
+  <div id="ss-brand-top">SELECT MARKET</div>
+  <div id="ss-brand-bot">SELECT MARKET</div>
+  <div id="ss-touch-hint">TOUCH TO EXPLORE</div>
+
+  <!-- 중앙 헤드라인 -->
+
+  <div id="ss-headline">
+    <div id="ss-headline-text"></div>
+  </div>
+
+  <!-- 뱃지 컨테이너 (JS로 채움) -->
+
+  <div id="ss-badges"></div>
+</div>
 
 <!-- ================= 홈 ================= -->
 
@@ -1663,6 +1824,7 @@ function renderEditor() {
             <div class="sep"></div>
             <button type="button" id="rte-link" title="링크">🔗</button>
             <button type="button" id="rte-hr" title="구분선">―</button>
+            <button type="button" id="rte-del-media" title="선택 이미지/영상 삭제" style="color:#f87171;">🗑</button>
             <button type="button" data-cmd="undo" title="취소">↶</button>
             <button type="button" data-cmd="redo" title="다시">↷</button>
             <button type="button" data-cmd="removeFormat" title="서식 지우기">⌫</button>
@@ -1727,6 +1889,20 @@ function bindRichTextEditor(b) {
     }
   });
 
+  // 선택 미디어 삭제 — 툴바 🗑 버튼
+  document.getElementById('rte-del-media').onclick = () => {
+    if (!selectedMedia) { toast('먼저 이미지나 영상을 클릭해서 선택하세요'); return; }
+    deleteSelectedMedia(b);
+  };
+
+  // 선택 미디어 삭제 — Delete / Backspace 키
+  editor.addEventListener('keydown', e => {
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMedia) {
+      e.preventDefault();
+      deleteSelectedMedia(b);
+    }
+  });
+
   // 이미지 좌/중/우 정렬
   document.getElementById('img-left').onclick   = () => alignMedia('left', b);
   document.getElementById('img-center').onclick = () => alignMedia('center', b);
@@ -1771,6 +1947,22 @@ async function insertPastedImages(files, b, range) {
       label: `붙여넣은 이미지 업로드 중… ${(file.size/1024/1024).toFixed(1)}MB`
     });
   }
+}
+
+function deleteSelectedMedia(b) {
+  if (!selectedMedia) return;
+  const el = selectedMedia;
+  const editor = document.getElementById('rte-editor');
+  const parent = el.parentElement;
+  // 부모가 에디터 직속이 아니고 이미지만 있는 단일 컨테이너면 통째로 제거
+  if (parent && parent !== editor && parent.childNodes.length === 1) {
+    parent.remove();
+  } else {
+    el.remove();
+  }
+  selectedMedia = null;
+  syncContent(b);
+  toast('삭제했습니다');
 }
 
 function alignMedia(which, b) {
@@ -2307,6 +2499,182 @@ window.clearThumb = clearThumb;
 window.pickLogo = pickLogo;
 window.pickThumb = pickThumb;
 window.syncContent = syncContent;
+
+/* ============================================================
+   화면보호기 — 스티커 뱃지 플로팅
+============================================================ */
+(function() {
+  const SS_IDLE_MS = 10000;
+
+  /* ── 헤드라인 문구 순환 ── */
+  const HEADLINES = [
+    '화면을\n터치하세요',
+    '취향을\n발견하세요',
+    '스타일을\n찾아보세요',
+    'Your\nStyle.',
+    '브랜드\n스토리',
+    '셀렉\n상회',
+  ];
+
+  /* ── 뱃지 정의 ── */
+  const BADGES = [
+    // shape, bg, color, main, sub, size(px), top%, left%, rot(deg), floatY(px), duration(s)
+    { shape:'circle',    bg:'#e8453c', color:'#fff',     main:'DO\nGOOD',          sub:'',                  size:130, top:8,  left:4,  rot:-10, fy:-16, dur:4.2 },
+    { shape:'pill',      bg:'#f5a623', color:'#111',     main:'POSITIVE\nIMPACT',  sub:'',                  size:0,   top:6,  left:18, rot:6,   fy:-12, dur:5.1, w:160, h:70 },
+    { shape:'circle',    bg:'#d4e8a0', color:'#111',     main:'MAKE A\nDIFF.',     sub:'',                  size:120, top:4,  left:48, rot:0,   fy:-10, dur:3.8 },
+    { shape:'pill',      bg:'#e8a020', color:'#111',     main:'MAKING\nCHANGE\nHAPPEN', sub:'',            size:0,   top:5,  left:70, rot:4,   fy:-14, dur:4.7, w:155, h:90 },
+    { shape:'pill',      bg:'#6dd6c8', color:'#111',     main:'SOCIAL\nIMPACT',    sub:'',                  size:0,   top:28, left:78, rot:-5,  fy:-12, dur:5.5, w:145, h:80 },
+    { shape:'circle',    bg:'#f5e642', color:'#111',     main:'100%',              sub:'ALL PROFITS',       size:110, top:60, left:4,  rot:5,   fy:-10, dur:4.9 },
+    { shape:'circle',    bg:'#85d06e', color:'#111',     main:'✓',                 sub:'',                  size:70,  top:68, left:20, rot:-8,  fy:-14, dur:3.5 },
+    { shape:'pill',      bg:'#e8453c', color:'#fff',     main:'PURPOSE!',          sub:'I GIVE A',          size:0,   top:65, left:32, rot:3,   fy:-11, dur:5.8, w:150, h:72 },
+    { shape:'circle',    bg:'#6dd6c8', color:'#111',     main:'DO\nGOOD',          sub:'',                  size:115, top:62, left:55, rot:0,   fy:-13, dur:4.3 },
+    { shape:'pill',      bg:'#f5a623', color:'#111',     main:'THE BUSINESS\nOF IMPACT', sub:'',           size:0,   top:60, left:68, rot:-4,  fy:-9,  dur:6.1, w:170, h:85 },
+    { shape:'pill',      bg:'#e8e8e8', color:'#111',     main:'CHANGE!',           sub:'I INVEST IN',       size:0,   top:58, left:84, rot:7,   fy:-15, dur:4.6, w:140, h:75 },
+    { shape:'circle',    bg:'#fff',    color:'#111',     main:'👍',                sub:'',                  size:100, top:18, left:38, rot:0,   fy:-8,  dur:5.3 },
+    { shape:'pill',      bg:'#85d06e', color:'#111',     main:'VINTAGE\nRETRO',    sub:'SELEC SANGHOE',     size:0,   top:82, left:40, rot:-3,  fy:-12, dur:4.0, w:155, h:75 },
+    { shape:'pill',      bg:'#6b5ce7', color:'#fff',     main:'BRAND\nSTORY',      sub:'CURATED',           size:0,   top:20, left:86, rot:-6,  fy:-10, dur:5.0, w:135, h:72 },
+  ];
+
+  const ssEl      = document.getElementById('screensaver');
+  const badgesEl  = document.getElementById('ss-badges');
+  const hlTextEl  = document.getElementById('ss-headline-text');
+  let ssActive    = false;
+  let idleTimer   = null;
+  let hlTimer     = null;
+  let hlIdx       = 0;
+  let badgesBuilt = false;
+
+  /* ── 뱃지 생성 ── */
+  function buildBadges() {
+    if (badgesBuilt) return;
+    badgesBuilt = true;
+    badgesEl.innerHTML = '';
+
+    BADGES.forEach((b, i) => {
+      const el = document.createElement('div');
+      el.className = 'ss-badge ' + b.shape;
+
+      const sz = b.size || 0;
+      const w  = b.w || sz;
+      const h  = b.h || sz;
+
+      Object.assign(el.style, {
+        background: b.bg,
+        color: b.color,
+        top:  b.top  + '%',
+        left: b.left + '%',
+        width:  w ? w + 'px' : 'auto',
+        height: h ? h + 'px' : 'auto',
+        fontSize: b.shape === 'circle' && b.size >= 120 ? '20px'
+                : b.shape === 'circle' ? '18px' : '15px',
+        '--ss-rot':     `rotate(${b.rot}deg)`,
+        '--ss-float-y': b.fy + 'px',
+        animationDuration:  b.dur + 's',
+        animationDelay: (i * 0.3 % 2) + 's',
+        animationTimingFunction: 'ease-in-out',
+        padding: b.shape === 'circle' ? '0' : undefined,
+      });
+
+      const inner = document.createElement('div');
+      inner.className = 'ss-badge-inner';
+
+      if (b.sub) {
+        const subEl = document.createElement('div');
+        subEl.className = 'ss-badge-sub';
+        subEl.style.fontSize = '9px';
+        subEl.textContent = b.sub;
+        inner.appendChild(subEl);
+      }
+
+      const mainEl = document.createElement('div');
+      mainEl.className = 'ss-badge-main';
+      mainEl.style.whiteSpace = 'pre-line';
+      mainEl.style.fontSize = b.shape === 'circle' && sz >= 120 ? '22px'
+                            : b.shape === 'circle' ? '20px' : '16px';
+      mainEl.textContent = b.main;
+      inner.appendChild(mainEl);
+
+      el.appendChild(inner);
+      badgesEl.appendChild(el);
+    });
+  }
+
+  /* ── 헤드라인 순환 ── */
+  function cycleHeadline() {
+    if (!ssActive) return;
+    hlTextEl.classList.remove('ss-visible');
+    setTimeout(() => {
+      if (!ssActive) return;
+      hlIdx = (hlIdx + 1) % HEADLINES.length;
+      hlTextEl.style.whiteSpace = 'pre-line';
+      hlTextEl.textContent = HEADLINES[hlIdx];
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (ssActive) hlTextEl.classList.add('ss-visible');
+      }));
+      hlTimer = setTimeout(cycleHeadline, 4000);
+    }, 500);
+  }
+
+  /* ── 시작 ── */
+  function startScreensaver() {
+    if (ssActive) return;
+    const adminOpen = ['admin-login','admin-panel','admin-editor-view']
+      .some(id => !document.getElementById(id)?.classList.contains('hidden'));
+    if (adminOpen) { resetIdleTimer(); return; }
+
+    ssActive = true;
+    buildBadges();
+
+    hlIdx = Math.floor(Math.random() * HEADLINES.length);
+    hlTextEl.style.whiteSpace = 'pre-line';
+    hlTextEl.textContent = HEADLINES[hlIdx];
+
+    ssEl.classList.add('ss-active');
+
+    setTimeout(() => {
+      if (!ssActive) return;
+      hlTextEl.classList.add('ss-visible');
+      hlTimer = setTimeout(cycleHeadline, 4000);
+    }, 400);
+  }
+
+  /* ── 해제 ── */
+  function dismissScreensaver() {
+    if (!ssActive) return;
+    ssActive = false;
+    clearTimeout(hlTimer);
+    hlTextEl.classList.remove('ss-visible');
+    ssEl.classList.add('ss-dismissing');
+    setTimeout(() => {
+      ssEl.classList.remove('ss-active', 'ss-dismissing');
+    }, 1100);
+    resetIdleTimer();
+  }
+
+  function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(startScreensaver, SS_IDLE_MS);
+  }
+
+  /* 활동 감지 — mousedown 제외 (버튼 충돌 방지) */
+  ['touchmove','mousemove','keydown','scroll'].forEach(evt => {
+    document.addEventListener(evt, () => {
+      if (ssActive) { dismissScreensaver(); return; }
+      resetIdleTimer();
+    }, { passive: true });
+  });
+  /* touchstart는 별도 처리 — previewBtn 제외 */
+  document.addEventListener('touchstart', (e) => {
+    if (e.target.closest('#ss-preview-btn')) return;
+    if (ssActive) { dismissScreensaver(); return; }
+    resetIdleTimer();
+  }, { passive: true });
+
+  ssEl.addEventListener('click',      dismissScreensaver);
+  ssEl.addEventListener('touchstart', dismissScreensaver, { passive: true });
+
+  resetIdleTimer();
+})();
 
 /* 초기화 */
 (async function init() {

@@ -2536,13 +2536,6 @@ window.syncContent = syncContent;
     idleTimer=setTimeout(startScreensaver,SS_IDLE_MS);
   }
 
-  // 5분마다 자동 새로고침 (캐시 무효화)
-  setTimeout(()=>{
-    const url=new URL(location.href);
-    url.searchParams.set('_v',Date.now());
-    location.replace(url.toString());
-  },5*60*1000);
-
   ['touchmove','mousemove','keydown','scroll','input'].forEach(evt=>{
     document.addEventListener(evt,()=>{if(ssActive){dismissScreensaver();return;}resetIdleTimer();},{passive:true});
   });
@@ -2551,6 +2544,29 @@ window.syncContent = syncContent;
   ssEl.addEventListener('touchstart',dismissScreensaver,{passive:true});
 
   resetIdleTimer();
+})();
+
+/* ============================================================
+   자동 새로고침 — 30분마다 최신 코드 반영 (무한루프 방지)
+============================================================ */
+(function() {
+  const REFRESH_INTERVAL = 30 * 60 * 1000; // 30분
+
+  function safeReload() {
+    // 관리자/에디터 열려있으면 새로고침 안 함
+    const adminOpen = ['admin-login','admin-panel','admin-editor-view']
+      .some(id => !document.getElementById(id)?.classList.contains('hidden'));
+    if (adminOpen) {
+      // 10분 후 다시 시도
+      setTimeout(safeReload, 10 * 60 * 1000);
+      return;
+    }
+    // 깨끗한 URL로 새로고침 (파라미터 없이)
+    const url = location.pathname + location.search.replace(/[?&]_v=[^&]*/g,'').replace(/^&/,'?') || location.pathname;
+    location.href = url;
+  }
+
+  setTimeout(safeReload, REFRESH_INTERVAL);
 })();
 
 (async function init() {

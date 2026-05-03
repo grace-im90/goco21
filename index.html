@@ -761,48 +761,61 @@
   #screensaver.ss-active   { opacity: 1; pointer-events: all; }
   #screensaver.ss-dismissing { opacity: 0; pointer-events: none; }
 
-  /* 중앙 메인 헤드라인 */
-  #ss-headline {
+  /* 전체 레이아웃: 상단 헤드라인 + 하단 뱃지 영역 */
+  #ss-layout {
     position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 2; pointer-events: none;
-    flex-direction: column; gap: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+    pointer-events: none; z-index: 4;
   }
+
+  /* 메인 헤드라인 — 최상위 */
   #ss-headline-text {
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-weight: 900;
-    font-size: clamp(52px, 10vw, 130px);
+    font-size: clamp(60px, 11vw, 140px);
     color: #fff;
     line-height: 1.05;
     text-align: center;
     letter-spacing: -0.01em;
     word-break: keep-all;
+    white-space: pre-line;
     opacity: 0;
-    transform: scale(0.96);
-    transition: opacity 0.7s ease, transform 0.7s ease;
+    transform: scale(0.94);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+    position: relative; z-index: 4;
   }
-  #ss-headline-text.ss-visible {
-    opacity: 1; transform: scale(1);
+  #ss-headline-text.ss-visible { opacity: 1; transform: scale(1); }
+
+  /* 뱃지 컨테이너 — 헤드라인 아래 */
+  #ss-badges {
+    position: relative;
+    width: 100vw;
+    height: clamp(120px, 22vh, 200px);
+    margin-top: clamp(16px, 3vh, 36px);
+    pointer-events: none;
+    z-index: 3;
   }
 
   /* 상단 브랜드 */
   #ss-brand-top {
-    position: absolute; top: 28px; left: 50%;
+    position: absolute; top: 26px; left: 50%;
     transform: translateX(-50%);
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-size: 11px; letter-spacing: 0.45em;
-    color: #fff; opacity: 0.14;
+    color: #fff; opacity: 0.13;
     text-transform: uppercase; white-space: nowrap;
     z-index: 5; pointer-events: none;
     padding-left: 0.45em;
   }
   /* 하단 브랜드 */
   #ss-brand-bot {
-    position: absolute; bottom: 28px; left: 50%;
+    position: absolute; bottom: 26px; left: 50%;
     transform: translateX(-50%);
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-size: 11px; letter-spacing: 0.45em;
-    color: #fff; opacity: 0.14;
+    color: #fff; opacity: 0.13;
     text-transform: uppercase; white-space: nowrap;
     z-index: 5; pointer-events: none;
     padding-left: 0.45em;
@@ -810,7 +823,7 @@
 
   /* 터치 힌트 */
   #ss-touch-hint {
-    position: absolute; bottom: 56px; left: 50%;
+    position: absolute; bottom: 54px; left: 50%;
     transform: translateX(-50%);
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-size: 10px; letter-spacing: 0.38em;
@@ -821,72 +834,32 @@
     animation: ss-hint 6s ease-in-out 4s infinite;
   }
   @keyframes ss-hint {
-    0%,100% { opacity:0; } 35%,65% { opacity:0.25; }
+    0%,100% { opacity:0; } 35%,65% { opacity:0.28; }
   }
 
   /* 뱃지 공통 */
   .ss-badge {
     position: absolute;
-    z-index: 3;
     pointer-events: none;
     display: flex; align-items: center; justify-content: center;
     text-align: center;
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-weight: 900;
-    line-height: 1.2;
+    line-height: 1.15;
     will-change: transform;
-    animation: ss-float linear infinite;
+    animation: ss-float ease-in-out infinite;
+    z-index: 3;
   }
+  .ss-badge.circle  { border-radius: 50%; }
+  .ss-badge.pill    { border-radius: 999px; padding: 0 22px; }
+  .ss-badge.rect    { border-radius: 14px; padding: 0 20px; }
+  .ss-badge.tag     { border-radius: 8px 8px 8px 0; padding: 0 18px; }
 
-  /* 원형 뱃지 */
-  .ss-badge.circle {
-    border-radius: 50%;
-    padding: 0;
-  }
-  /* 둥근 사각형 */
-  .ss-badge.pill {
-    border-radius: 18px;
-    padding: 14px 20px;
-  }
-  /* 삐뚤어진 사각형 (rotate로 표현) */
-  .ss-badge.tag {
-    border-radius: 12px;
-    padding: 12px 18px;
-  }
-  /* 톱니 뱃지 (badge shape via clip-path) */
-  .ss-badge.starburst {
-    border-radius: 50%;
-    padding: 0;
-  }
-
-  .ss-badge-inner {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 2px; width: 100%; height: 100%;
-  }
-  .ss-badge-main {
-    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
-    font-weight: 900;
-    letter-spacing: 0.01em;
-    line-height: 1.1;
-  }
-  .ss-badge-sub {
-    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
-    font-weight: 900;
-    opacity: 0.75;
-    letter-spacing: 0.04em;
-    line-height: 1.1;
-  }
-
-  /* 플로팅 애니메이션 — 각 뱃지별로 duration/delay 다르게 */
   @keyframes ss-float {
     0%   { transform: var(--ss-rot) translateY(0px); }
-    50%  { transform: var(--ss-rot) translateY(var(--ss-float-y, -14px)); }
+    50%  { transform: var(--ss-rot) translateY(var(--ss-fy,-12px)); }
     100% { transform: var(--ss-rot) translateY(0px); }
   }
-
-  /* 뱃지 컨테이너 (전체 자리 잡기 용) */
-  #ss-badges { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 </style>
 
 </head>
@@ -899,15 +872,12 @@
   <div id="ss-brand-bot">SELECT MARKET</div>
   <div id="ss-touch-hint">TOUCH TO EXPLORE</div>
 
-  <!-- 중앙 헤드라인 -->
+  <!-- 헤드라인(상) + 뱃지(하) 레이아웃 -->
 
-  <div id="ss-headline">
+  <div id="ss-layout">
     <div id="ss-headline-text"></div>
+    <div id="ss-badges"></div>
   </div>
-
-  <!-- 뱃지 컨테이너 (JS로 채움) -->
-
-  <div id="ss-badges"></div>
 </div>
 
 <!-- ================= 홈 ================= -->
@@ -2506,7 +2476,7 @@ window.syncContent = syncContent;
 (function() {
   const SS_IDLE_MS = 10000;
 
-  /* ── 헤드라인 문구 순환 ── */
+  /* ── 헤드라인 (기존 동일) ── */
   const HEADLINES = [
     '화면을\n터치하세요',
     '취향을\n발견하세요',
@@ -2516,85 +2486,108 @@ window.syncContent = syncContent;
     '셀렉\n상회',
   ];
 
-  /* ── 뱃지 정의 ── */
-  const BADGES = [
-    // shape, bg, color, main, sub, size(px), top%, left%, rot(deg), floatY(px), duration(s)
-    { shape:'circle',    bg:'#e8453c', color:'#fff',     main:'DO\nGOOD',          sub:'',                  size:130, top:8,  left:4,  rot:-10, fy:-16, dur:4.2 },
-    { shape:'pill',      bg:'#f5a623', color:'#111',     main:'POSITIVE\nIMPACT',  sub:'',                  size:0,   top:6,  left:18, rot:6,   fy:-12, dur:5.1, w:160, h:70 },
-    { shape:'circle',    bg:'#d4e8a0', color:'#111',     main:'MAKE A\nDIFF.',     sub:'',                  size:120, top:4,  left:48, rot:0,   fy:-10, dur:3.8 },
-    { shape:'pill',      bg:'#e8a020', color:'#111',     main:'MAKING\nCHANGE\nHAPPEN', sub:'',            size:0,   top:5,  left:70, rot:4,   fy:-14, dur:4.7, w:155, h:90 },
-    { shape:'pill',      bg:'#6dd6c8', color:'#111',     main:'SOCIAL\nIMPACT',    sub:'',                  size:0,   top:28, left:78, rot:-5,  fy:-12, dur:5.5, w:145, h:80 },
-    { shape:'circle',    bg:'#f5e642', color:'#111',     main:'100%',              sub:'ALL PROFITS',       size:110, top:60, left:4,  rot:5,   fy:-10, dur:4.9 },
-    { shape:'circle',    bg:'#85d06e', color:'#111',     main:'✓',                 sub:'',                  size:70,  top:68, left:20, rot:-8,  fy:-14, dur:3.5 },
-    { shape:'pill',      bg:'#e8453c', color:'#fff',     main:'PURPOSE!',          sub:'I GIVE A',          size:0,   top:65, left:32, rot:3,   fy:-11, dur:5.8, w:150, h:72 },
-    { shape:'circle',    bg:'#6dd6c8', color:'#111',     main:'DO\nGOOD',          sub:'',                  size:115, top:62, left:55, rot:0,   fy:-13, dur:4.3 },
-    { shape:'pill',      bg:'#f5a623', color:'#111',     main:'THE BUSINESS\nOF IMPACT', sub:'',           size:0,   top:60, left:68, rot:-4,  fy:-9,  dur:6.1, w:170, h:85 },
-    { shape:'pill',      bg:'#e8e8e8', color:'#111',     main:'CHANGE!',           sub:'I INVEST IN',       size:0,   top:58, left:84, rot:7,   fy:-15, dur:4.6, w:140, h:75 },
-    { shape:'circle',    bg:'#fff',    color:'#111',     main:'👍',                sub:'',                  size:100, top:18, left:38, rot:0,   fy:-8,  dur:5.3 },
-    { shape:'pill',      bg:'#85d06e', color:'#111',     main:'VINTAGE\nRETRO',    sub:'SELEC SANGHOE',     size:0,   top:82, left:40, rot:-3,  fy:-12, dur:4.0, w:155, h:75 },
-    { shape:'pill',      bg:'#6b5ce7', color:'#fff',     main:'BRAND\nSTORY',      sub:'CURATED',           size:0,   top:20, left:86, rot:-6,  fy:-10, dur:5.0, w:135, h:72 },
+  /* ── 뱃지 문구 풀 (영문 5 + 국문 5) ── */
+  const BADGE_WORDS = [
+    { text: 'SELECT',    lang: 'en' },
+    { text: 'CURATED',   lang: 'en' },
+    { text: 'ONLY ONE',  lang: 'en' },
+    { text: 'DISCOVER',  lang: 'en' },
+    { text: 'YOUR STYLE',lang: 'en' },
+    { text: '선택',       lang: 'ko' },
+    { text: '기준',       lang: 'ko' },
+    { text: '단 하나',    lang: 'ko' },
+    { text: '발견',       lang: 'ko' },
+    { text: '취향',       lang: 'ko' },
   ];
 
-  const ssEl      = document.getElementById('screensaver');
-  const badgesEl  = document.getElementById('ss-badges');
-  const hlTextEl  = document.getElementById('ss-headline-text');
-  let ssActive    = false;
-  let idleTimer   = null;
-  let hlTimer     = null;
-  let hlIdx       = 0;
-  let badgesBuilt = false;
+  /* ── 뱃지 팔레트 ── */
+  const PALETTE = [
+    { bg: '#e8453c', color: '#fff' },
+    { bg: '#f5a623', color: '#111' },
+    { bg: '#f5e642', color: '#111' },
+    { bg: '#85d06e', color: '#111' },
+    { bg: '#6dd6c8', color: '#111' },
+    { bg: '#6b5ce7', color: '#fff' },
+    { bg: '#fff',    color: '#111' },
+    { bg: '#d4e8a0', color: '#111' },
+    { bg: '#e8a020', color: '#111' },
+    { bg: '#e8e8e8', color: '#111' },
+  ];
 
-  /* ── 뱃지 생성 ── */
+  /* ── 뱃지 모양 ── */
+  const SHAPES = ['circle', 'pill', 'rect', 'tag'];
+
+  /* ── 뱃지 크기 설정 ── */
+  const SIZES = [
+    { w: 110, h: 110 }, // circle small
+    { w: 140, h: 140 }, // circle large
+    { w: 130, h: 58  }, // pill narrow
+    { w: 160, h: 68  }, // pill wide
+    { w: 130, h: 62  }, // rect
+    { w: 110, h: 56  }, // tag
+  ];
+
+  const ssEl     = document.getElementById('screensaver');
+  const badgesEl = document.getElementById('ss-badges');
+  const hlTextEl = document.getElementById('ss-headline-text');
+
+  let ssActive  = false;
+  let idleTimer = null;
+  let hlTimer   = null;
+  let hlIdx     = 0;
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  /* ── 뱃지 5개 랜덤 생성 ── */
   function buildBadges() {
-    if (badgesBuilt) return;
-    badgesBuilt = true;
     badgesEl.innerHTML = '';
+    const containerW = window.innerWidth;
+    const containerH = badgesEl.offsetHeight || 160;
 
-    BADGES.forEach((b, i) => {
+    // 문구 풀에서 5개 랜덤 선택 (중복 없이)
+    const shuffled = [...BADGE_WORDS].sort(() => Math.random() - 0.5).slice(0, 5);
+
+    // 가로로 겹치지 않게 균등 분배
+    const slotW = containerW / 5;
+
+    shuffled.forEach((word, i) => {
+      const shape   = pick(SHAPES);
+      const palette = pick(PALETTE);
+      const sizeOpt = pick(SIZES);
+      const isCircle = shape === 'circle';
+      const w = isCircle ? sizeOpt.w : sizeOpt.w + Math.floor(rnd(-20, 20));
+      const h = isCircle ? sizeOpt.w : sizeOpt.h;
+      const rot = rnd(-12, 12);
+      const fy  = rnd(-14, -8);
+      const dur = rnd(3.5, 6.5);
+      const delay = rnd(0, 2);
+
+      // 각 슬롯 안에서 랜덤 X
+      const slotLeft = slotW * i;
+      const left = slotLeft + rnd(4, slotW - w - 4);
+      const top  = rnd(4, Math.max(5, containerH - h - 4));
+
+      const fontSize = isCircle
+        ? (w >= 130 ? '22px' : '18px')
+        : (word.lang === 'ko' ? '17px' : '15px');
+
       const el = document.createElement('div');
-      el.className = 'ss-badge ' + b.shape;
-
-      const sz = b.size || 0;
-      const w  = b.w || sz;
-      const h  = b.h || sz;
-
-      Object.assign(el.style, {
-        background: b.bg,
-        color: b.color,
-        top:  b.top  + '%',
-        left: b.left + '%',
-        width:  w ? w + 'px' : 'auto',
-        height: h ? h + 'px' : 'auto',
-        fontSize: b.shape === 'circle' && b.size >= 120 ? '20px'
-                : b.shape === 'circle' ? '18px' : '15px',
-        '--ss-rot':     `rotate(${b.rot}deg)`,
-        '--ss-float-y': b.fy + 'px',
-        animationDuration:  b.dur + 's',
-        animationDelay: (i * 0.3 % 2) + 's',
-        animationTimingFunction: 'ease-in-out',
-        padding: b.shape === 'circle' ? '0' : undefined,
-      });
-
-      const inner = document.createElement('div');
-      inner.className = 'ss-badge-inner';
-
-      if (b.sub) {
-        const subEl = document.createElement('div');
-        subEl.className = 'ss-badge-sub';
-        subEl.style.fontSize = '9px';
-        subEl.textContent = b.sub;
-        inner.appendChild(subEl);
-      }
-
-      const mainEl = document.createElement('div');
-      mainEl.className = 'ss-badge-main';
-      mainEl.style.whiteSpace = 'pre-line';
-      mainEl.style.fontSize = b.shape === 'circle' && sz >= 120 ? '22px'
-                            : b.shape === 'circle' ? '20px' : '16px';
-      mainEl.textContent = b.main;
-      inner.appendChild(mainEl);
-
-      el.appendChild(inner);
+      el.className = 'ss-badge ' + shape;
+      el.style.cssText = `
+        background:${palette.bg};
+        color:${palette.color};
+        left:${left}px;
+        top:${top}px;
+        width:${w}px;
+        height:${h}px;
+        font-size:${fontSize};
+        --ss-rot:rotate(${rot}deg);
+        --ss-fy:${fy}px;
+        animation-duration:${dur}s;
+        animation-delay:${delay}s;
+      `;
+      el.textContent = word.text;
       badgesEl.appendChild(el);
     });
   }
@@ -2606,8 +2599,9 @@ window.syncContent = syncContent;
     setTimeout(() => {
       if (!ssActive) return;
       hlIdx = (hlIdx + 1) % HEADLINES.length;
-      hlTextEl.style.whiteSpace = 'pre-line';
       hlTextEl.textContent = HEADLINES[hlIdx];
+      // 뱃지도 같이 교체 (번인 방지 — 위치 변경)
+      buildBadges();
       requestAnimationFrame(() => requestAnimationFrame(() => {
         if (ssActive) hlTextEl.classList.add('ss-visible');
       }));
@@ -2623,14 +2617,10 @@ window.syncContent = syncContent;
     if (adminOpen) { resetIdleTimer(); return; }
 
     ssActive = true;
-    buildBadges();
-
     hlIdx = Math.floor(Math.random() * HEADLINES.length);
-    hlTextEl.style.whiteSpace = 'pre-line';
     hlTextEl.textContent = HEADLINES[hlIdx];
-
+    buildBadges();
     ssEl.classList.add('ss-active');
-
     setTimeout(() => {
       if (!ssActive) return;
       hlTextEl.classList.add('ss-visible');
@@ -2645,9 +2635,7 @@ window.syncContent = syncContent;
     clearTimeout(hlTimer);
     hlTextEl.classList.remove('ss-visible');
     ssEl.classList.add('ss-dismissing');
-    setTimeout(() => {
-      ssEl.classList.remove('ss-active', 'ss-dismissing');
-    }, 1100);
+    setTimeout(() => ssEl.classList.remove('ss-active', 'ss-dismissing'), 1100);
     resetIdleTimer();
   }
 
@@ -2656,16 +2644,13 @@ window.syncContent = syncContent;
     idleTimer = setTimeout(startScreensaver, SS_IDLE_MS);
   }
 
-  /* 활동 감지 — mousedown 제외 (버튼 충돌 방지) */
   ['touchmove','mousemove','keydown','scroll'].forEach(evt => {
     document.addEventListener(evt, () => {
       if (ssActive) { dismissScreensaver(); return; }
       resetIdleTimer();
     }, { passive: true });
   });
-  /* touchstart는 별도 처리 — previewBtn 제외 */
   document.addEventListener('touchstart', (e) => {
-    if (e.target.closest('#ss-preview-btn')) return;
     if (ssActive) { dismissScreensaver(); return; }
     resetIdleTimer();
   }, { passive: true });

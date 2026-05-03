@@ -748,7 +748,7 @@
   .exit-card .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
   /* ============================================================
-     화면보호기 — 스티커 뱃지 플로팅 디자인
+     화면보호기 — 레퍼런스 스타일 (스티커 전면 + 헤드라인 최상위)
   ============================================================ */
   #screensaver {
     position: fixed; inset: 0;
@@ -758,68 +758,56 @@
     transition: opacity 1s ease;
     overflow: hidden;
   }
-  #screensaver.ss-active   { opacity: 1; pointer-events: all; }
-  #screensaver.ss-dismissing { opacity: 0; pointer-events: none; }
+  #screensaver.ss-active    { opacity: 1; pointer-events: all; }
+  #screensaver.ss-dismissing{ opacity: 0; pointer-events: none; }
 
-  /* 전체 레이아웃: 상단 헤드라인 + 하단 뱃지 영역 */
-  #ss-layout {
+  /* 메인 헤드라인 — 항상 최상위, 화면 정중앙 */
+  #ss-headline-wrap {
     position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 0;
-    pointer-events: none; z-index: 4;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10; pointer-events: none;
   }
-
-  /* 메인 헤드라인 — 최상위 */
   #ss-headline-text {
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-weight: 900;
-    font-size: clamp(60px, 11vw, 140px);
+    font-size: clamp(64px, 12vw, 150px);
     color: #fff;
-    line-height: 1.05;
+    line-height: 1.0;
     text-align: center;
     letter-spacing: -0.01em;
     word-break: keep-all;
     white-space: pre-line;
     opacity: 0;
-    transform: scale(0.94);
-    transition: opacity 0.65s ease, transform 0.65s ease;
-    position: relative; z-index: 4;
+    transform: scale(0.93);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    /* 텍스트 위에 약한 그림자로 뒤 스티커와 구분 */
+    text-shadow:
+      0 0 40px rgba(0,0,0,0.9),
+      0 0 80px rgba(0,0,0,0.7),
+      0 2px 8px rgba(0,0,0,0.8);
   }
   #ss-headline-text.ss-visible { opacity: 1; transform: scale(1); }
 
-  /* 뱃지 컨테이너 — 헤드라인 아래 */
+  /* 뱃지 컨테이너 — 전체 화면, 헤드라인 뒤 */
   #ss-badges {
-    position: relative;
-    width: 100vw;
-    height: clamp(120px, 22vh, 200px);
-    margin-top: clamp(16px, 3vh, 36px);
+    position: absolute; inset: 0;
     pointer-events: none;
     z-index: 3;
   }
 
-  /* 상단 브랜드 */
-  #ss-brand-top {
-    position: absolute; top: 26px; left: 50%;
+  /* 상단/하단 브랜드 */
+  #ss-brand-top, #ss-brand-bot {
+    position: absolute; left: 50%;
     transform: translateX(-50%);
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-size: 11px; letter-spacing: 0.45em;
     color: #fff; opacity: 0.13;
     text-transform: uppercase; white-space: nowrap;
-    z-index: 5; pointer-events: none;
+    z-index: 11; pointer-events: none;
     padding-left: 0.45em;
   }
-  /* 하단 브랜드 */
-  #ss-brand-bot {
-    position: absolute; bottom: 26px; left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
-    font-size: 11px; letter-spacing: 0.45em;
-    color: #fff; opacity: 0.13;
-    text-transform: uppercase; white-space: nowrap;
-    z-index: 5; pointer-events: none;
-    padding-left: 0.45em;
-  }
+  #ss-brand-top { top: 26px; }
+  #ss-brand-bot { bottom: 26px; }
 
   /* 터치 힌트 */
   #ss-touch-hint {
@@ -829,13 +817,11 @@
     font-size: 10px; letter-spacing: 0.38em;
     color: #fff; opacity: 0;
     text-transform: uppercase; white-space: nowrap;
-    z-index: 5; pointer-events: none;
+    z-index: 11; pointer-events: none;
     padding-left: 0.38em;
     animation: ss-hint 6s ease-in-out 4s infinite;
   }
-  @keyframes ss-hint {
-    0%,100% { opacity:0; } 35%,65% { opacity:0.28; }
-  }
+  @keyframes ss-hint { 0%,100%{opacity:0;} 35%,65%{opacity:0.28;} }
 
   /* 뱃지 공통 */
   .ss-badge {
@@ -845,19 +831,27 @@
     text-align: center;
     font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
     font-weight: 900;
-    line-height: 1.15;
-    will-change: transform;
+    line-height: 1.2;
+    will-change: transform, opacity;
     animation: ss-float ease-in-out infinite;
     z-index: 3;
+    transition: opacity 0.8s ease;
   }
-  .ss-badge.circle  { border-radius: 50%; }
-  .ss-badge.pill    { border-radius: 999px; padding: 0 22px; }
-  .ss-badge.rect    { border-radius: 14px; padding: 0 20px; }
-  .ss-badge.tag     { border-radius: 8px 8px 8px 0; padding: 0 18px; }
+  .ss-badge.ss-fade-out { opacity: 0 !important; }
+  .ss-badge.ss-fade-in  { opacity: 1; }
+
+  /* 모양별 */
+  .ss-badge.circle   { border-radius: 50%; }
+  .ss-badge.pill     { border-radius: 999px; }
+  .ss-badge.rect     { border-radius: 16px; }
+  .ss-badge.tag      { border-radius: 10px 10px 10px 0; }
+  .ss-badge.blob     { border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%; }
+  .ss-badge.stamp    { border-radius: 12px; outline: 3px dashed rgba(0,0,0,0.2); outline-offset: -6px; }
+  .ss-badge.emoji-badge { border-radius: 50%; font-size: inherit !important; }
 
   @keyframes ss-float {
     0%   { transform: var(--ss-rot) translateY(0px); }
-    50%  { transform: var(--ss-rot) translateY(var(--ss-fy,-12px)); }
+    50%  { transform: var(--ss-rot) translateY(var(--ss-fy,-10px)); }
     100% { transform: var(--ss-rot) translateY(0px); }
   }
 </style>
@@ -871,12 +865,11 @@
   <div id="ss-brand-top">SELECT MARKET</div>
   <div id="ss-brand-bot">SELECT MARKET</div>
   <div id="ss-touch-hint">TOUCH TO EXPLORE</div>
-
-  <!-- 헤드라인(상) + 뱃지(하) 레이아웃 -->
-
-  <div id="ss-layout">
+  <!-- 뱃지 (전면, 헤드라인 뒤) -->
+  <div id="ss-badges"></div>
+  <!-- 헤드라인 (최상위) -->
+  <div id="ss-headline-wrap">
     <div id="ss-headline-text"></div>
-    <div id="ss-badges"></div>
   </div>
 </div>
 
@@ -2471,12 +2464,15 @@ window.pickThumb = pickThumb;
 window.syncContent = syncContent;
 
 /* ============================================================
-   화면보호기 — 스티커 뱃지 플로팅
+   화면보호기 — 스티커 전면 플로팅 + 헤드라인 최상위
 ============================================================ */
 (function() {
-  const SS_IDLE_MS = 10000;
+  const SS_IDLE_MS   = 10000;   // 무조작 10초 후 실행
+  const SS_CYCLE_MS  = 15000;   // 뱃지 교체 주기 15초
+  const SS_HL_MS     = 15000;   // 헤드라인 교체 주기 (뱃지와 동일)
+  const BADGE_COUNT  = 12;      // 화면에 보이는 뱃지 수
 
-  /* ── 헤드라인 (기존 동일) ── */
+  /* ── 헤드라인 ── */
   const HEADLINES = [
     '화면을\n터치하세요',
     '취향을\n발견하세요',
@@ -2484,128 +2480,206 @@ window.syncContent = syncContent;
     'Your\nStyle.',
     '브랜드\n스토리',
     '셀렉\n상회',
+    'Discover\nMore.',
+    '지금\n확인하세요',
   ];
 
-  /* ── 뱃지 문구 풀 (영문 5 + 국문 5) ── */
-  const BADGE_WORDS = [
-    { text: 'SELECT',    lang: 'en' },
-    { text: 'CURATED',   lang: 'en' },
-    { text: 'ONLY ONE',  lang: 'en' },
-    { text: 'DISCOVER',  lang: 'en' },
-    { text: 'YOUR STYLE',lang: 'en' },
-    { text: '선택',       lang: 'ko' },
-    { text: '기준',       lang: 'ko' },
-    { text: '단 하나',    lang: 'ko' },
-    { text: '발견',       lang: 'ko' },
-    { text: '취향',       lang: 'ko' },
+  /* ── 뱃지 문구 풀 (영문 + 국문 + 이모지) ── */
+  const BADGE_POOL = [
+    // 영문
+    { text: 'SELECT',      lang:'en', emoji:false },
+    { text: 'CURATED',     lang:'en', emoji:false },
+    { text: 'ONLY ONE',    lang:'en', emoji:false },
+    { text: 'DISCOVER',    lang:'en', emoji:false },
+    { text: 'YOUR STYLE',  lang:'en', emoji:false },
+    { text: 'VINTAGE',     lang:'en', emoji:false },
+    { text: 'RETRO',       lang:'en', emoji:false },
+    { text: 'FASHION',     lang:'en', emoji:false },
+    { text: 'BRAND',       lang:'en', emoji:false },
+    { text: 'UNIQUE',      lang:'en', emoji:false },
+    // 국문
+    { text: '선택',         lang:'ko', emoji:false },
+    { text: '기준',         lang:'ko', emoji:false },
+    { text: '단 하나',      lang:'ko', emoji:false },
+    { text: '발견',         lang:'ko', emoji:false },
+    { text: '취향',         lang:'ko', emoji:false },
+    { text: '스타일',       lang:'ko', emoji:false },
+    { text: '빈티지',       lang:'ko', emoji:false },
+    { text: '큐레이션',     lang:'ko', emoji:false },
+    { text: '나만의것',     lang:'ko', emoji:false },
+    { text: '브랜드',       lang:'ko', emoji:false },
+    // 이모지
+    { text: '👍',   lang:'emoji', emoji:true },
+    { text: '🔥',   lang:'emoji', emoji:true },
+    { text: '✨',   lang:'emoji', emoji:true },
+    { text: '💎',   lang:'emoji', emoji:true },
+    { text: '🎯',   lang:'emoji', emoji:true },
+    { text: '👗',   lang:'emoji', emoji:true },
+    { text: '🧢',   lang:'emoji', emoji:true },
+    { text: '⭐',   lang:'emoji', emoji:true },
   ];
 
-  /* ── 뱃지 팔레트 ── */
+  /* ── 팔레트 ── */
   const PALETTE = [
-    { bg: '#e8453c', color: '#fff' },
-    { bg: '#f5a623', color: '#111' },
-    { bg: '#f5e642', color: '#111' },
-    { bg: '#85d06e', color: '#111' },
-    { bg: '#6dd6c8', color: '#111' },
-    { bg: '#6b5ce7', color: '#fff' },
-    { bg: '#fff',    color: '#111' },
-    { bg: '#d4e8a0', color: '#111' },
-    { bg: '#e8a020', color: '#111' },
-    { bg: '#e8e8e8', color: '#111' },
+    { bg:'#e8453c', color:'#fff' }, // 빨강
+    { bg:'#f5a623', color:'#111' }, // 주황
+    { bg:'#f5e642', color:'#111' }, // 노랑
+    { bg:'#85d06e', color:'#111' }, // 연두
+    { bg:'#6dd6c8', color:'#111' }, // 민트
+    { bg:'#6b5ce7', color:'#fff' }, // 보라
+    { bg:'#fff',    color:'#111' }, // 흰
+    { bg:'#d4e8a0', color:'#111' }, // 연초록
+    { bg:'#e8a020', color:'#111' }, // 황금
+    { bg:'#ff85a1', color:'#111' }, // 핑크
+    { bg:'#5bc8fa', color:'#111' }, // 하늘
+    { bg:'#b8f0b8', color:'#111' }, // 파스텔 그린
   ];
 
-  /* ── 뱃지 모양 ── */
-  const SHAPES = ['circle', 'pill', 'rect', 'tag'];
+  /* ── 모양 (레퍼런스 참고) ── */
+  const SHAPES = ['circle','pill','rect','tag','blob','stamp'];
 
-  /* ── 뱃지 크기 설정 ── */
-  const SIZES = [
-    { w: 110, h: 110 }, // circle small
-    { w: 140, h: 140 }, // circle large
-    { w: 130, h: 58  }, // pill narrow
-    { w: 160, h: 68  }, // pill wide
-    { w: 130, h: 62  }, // rect
-    { w: 110, h: 56  }, // tag
+  /* ─ 뱃지 배치 영역 정의 (화면을 9구역으로 나눔, 중앙 제외) ─ */
+  // 중앙 구역은 헤드라인 영역 → 뱃지를 조금만 겹치게 배치
+  // top/left/w/h 모두 % 단위
+  const ZONES = [
+    { tx:2,  ty:3,  tw:28, th:30 }, // 좌상
+    { tx:35, ty:3,  tw:28, th:20 }, // 중상
+    { tx:68, ty:3,  tw:28, th:30 }, // 우상
+    { tx:2,  ty:35, tw:22, th:30 }, // 좌중
+    { tx:74, ty:35, tw:22, th:30 }, // 우중
+    { tx:2,  ty:65, tw:28, th:28 }, // 좌하
+    { tx:35, ty:72, tw:28, th:22 }, // 중하
+    { tx:68, ty:65, tw:28, th:28 }, // 우하
+    // 헤드라인 모서리 약간 겹치는 구역 (조금만)
+    { tx:20, ty:28, tw:18, th:22 }, // 헤드라인 좌
+    { tx:60, ty:28, tw:18, th:22 }, // 헤드라인 우
+    { tx:30, ty:55, tw:18, th:15 }, // 헤드라인 아래좌
+    { tx:50, ty:55, tw:18, th:15 }, // 헤드라인 아래우
   ];
 
   const ssEl     = document.getElementById('screensaver');
   const badgesEl = document.getElementById('ss-badges');
   const hlTextEl = document.getElementById('ss-headline-text');
 
-  let ssActive  = false;
-  let idleTimer = null;
-  let hlTimer   = null;
-  let hlIdx     = 0;
+  let ssActive   = false;
+  let idleTimer  = null;
+  let cycleTimer = null;
+  let hlIdx      = 0;
 
-  function rnd(a, b) { return a + Math.random() * (b - a); }
-  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
 
-  /* ── 뱃지 5개 랜덤 생성 ── */
-  function buildBadges() {
-    badgesEl.innerHTML = '';
-    const containerW = window.innerWidth;
-    const containerH = badgesEl.offsetHeight || 160;
-
-    // 문구 풀에서 5개 랜덤 선택 (중복 없이)
-    const shuffled = [...BADGE_WORDS].sort(() => Math.random() - 0.5).slice(0, 5);
-
-    // 가로로 겹치지 않게 균등 분배
-    const slotW = containerW / 5;
-
-    shuffled.forEach((word, i) => {
-      const shape   = pick(SHAPES);
-      const palette = pick(PALETTE);
-      const sizeOpt = pick(SIZES);
-      const isCircle = shape === 'circle';
-      const w = isCircle ? sizeOpt.w : sizeOpt.w + Math.floor(rnd(-20, 20));
-      const h = isCircle ? sizeOpt.w : sizeOpt.h;
-      const rot = rnd(-12, 12);
-      const fy  = rnd(-14, -8);
-      const dur = rnd(3.5, 6.5);
-      const delay = rnd(0, 2);
-
-      // 각 슬롯 안에서 랜덤 X
-      const slotLeft = slotW * i;
-      const left = slotLeft + rnd(4, slotW - w - 4);
-      const top  = rnd(4, Math.max(5, containerH - h - 4));
-
-      const fontSize = isCircle
-        ? (w >= 130 ? '22px' : '18px')
-        : (word.lang === 'ko' ? '17px' : '15px');
-
-      const el = document.createElement('div');
-      el.className = 'ss-badge ' + shape;
-      el.style.cssText = `
-        background:${palette.bg};
-        color:${palette.color};
-        left:${left}px;
-        top:${top}px;
-        width:${w}px;
-        height:${h}px;
-        font-size:${fontSize};
-        --ss-rot:rotate(${rot}deg);
-        --ss-fy:${fy}px;
-        animation-duration:${dur}s;
-        animation-delay:${delay}s;
-      `;
-      el.textContent = word.text;
-      badgesEl.appendChild(el);
-    });
+  /* ── 뱃지 크기 결정 ── */
+  function getBadgeSize(shape, lang) {
+    const isEmoji = lang === 'emoji';
+    if (shape === 'circle') {
+      const d = isEmoji ? rnd(70,110) : rnd(80,150);
+      return { w:d, h:d };
+    }
+    if (shape === 'blob') {
+      const d = rnd(90,140);
+      return { w:d, h:d };
+    }
+    // pill / rect / tag / stamp
+    const h = isEmoji ? rnd(60,80) : (lang==='ko' ? rnd(60,85) : rnd(52,78));
+    const w = isEmoji ? h : (lang==='ko' ? rnd(100,170) : rnd(110,190));
+    return { w, h };
   }
 
-  /* ── 헤드라인 순환 ── */
-  function cycleHeadline() {
+  /* ── 뱃지 1개 DOM 생성 ── */
+  function createBadge(word, zone) {
+    const shape   = pick(SHAPES);
+    const palette = pick(PALETTE);
+    const { w, h } = getBadgeSize(shape, word.lang);
+    const rot   = rnd(-14, 14);
+    const fy    = rnd(-13, -7);
+    const dur   = rnd(3.2, 6.8);
+    const delay = rnd(0, 2.5);
+
+    // 구역 안에서 랜덤 위치 (vw/vh %)
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const zoneLeft = zone.tx/100 * vw;
+    const zoneTop  = zone.ty/100 * vh;
+    const zoneW    = zone.tw/100 * vw;
+    const zoneH    = zone.th/100 * vh;
+    const left = zoneLeft + rnd(0, Math.max(0, zoneW - w));
+    const top  = zoneTop  + rnd(0, Math.max(0, zoneH - h));
+
+    // 폰트 크기
+    let fs;
+    if (word.emoji) {
+      fs = Math.min(w,h) * 0.5 + 'px';
+    } else if (shape === 'circle' || shape === 'blob') {
+      fs = (word.lang==='ko' ? Math.min(w,h)*0.28 : Math.min(w,h)*0.26) + 'px';
+    } else {
+      fs = (word.lang==='ko' ? '18px' : '15px');
+    }
+
+    const el = document.createElement('div');
+    el.className = 'ss-badge ' + shape;
+    el.style.cssText = `
+      background:${palette.bg};
+      color:${palette.color};
+      left:${left}px; top:${top}px;
+      width:${w}px; height:${h}px;
+      font-size:${fs};
+      padding:${(shape==='pill'||shape==='rect'||shape==='tag'||shape==='stamp') ? '0 16px' : '0'};
+      --ss-rot:rotate(${rot}deg);
+      --ss-fy:${fy}px;
+      animation-duration:${dur}s;
+      animation-delay:-${delay}s;
+      opacity:0;
+      transition:opacity 0.8s ease;
+    `;
+    el.textContent = word.text;
+    return el;
+  }
+
+  /* ── 뱃지 세트 디졸브 교체 ── */
+  function buildBadges(dissolve) {
+    const vw = window.innerWidth;
+
+    // 풀에서 BADGE_COUNT개 랜덤 선택
+    const words  = shuffle(BADGE_POOL).slice(0, BADGE_COUNT);
+    const zones  = shuffle(ZONES).slice(0, BADGE_COUNT);
+    const newEls = words.map((w, i) => createBadge(w, zones[i % zones.length]));
+
+    if (dissolve && badgesEl.children.length > 0) {
+      // 기존 뱃지 페이드아웃
+      const oldEls = [...badgesEl.children];
+      oldEls.forEach(el => { el.style.opacity = '0'; });
+      setTimeout(() => {
+        badgesEl.innerHTML = '';
+        newEls.forEach(el => badgesEl.appendChild(el));
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          newEls.forEach(el => { el.style.opacity = '1'; });
+        }));
+      }, 850);
+    } else {
+      badgesEl.innerHTML = '';
+      newEls.forEach(el => badgesEl.appendChild(el));
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        newEls.forEach(el => { el.style.opacity = '1'; });
+      }));
+    }
+  }
+
+  /* ── 헤드라인 + 뱃지 동시 순환 ── */
+  function cycle() {
     if (!ssActive) return;
+    // 헤드라인 페이드아웃
     hlTextEl.classList.remove('ss-visible');
+    // 뱃지 디졸브
+    buildBadges(true);
     setTimeout(() => {
       if (!ssActive) return;
       hlIdx = (hlIdx + 1) % HEADLINES.length;
       hlTextEl.textContent = HEADLINES[hlIdx];
-      // 뱃지도 같이 교체 (번인 방지 — 위치 변경)
-      buildBadges();
       requestAnimationFrame(() => requestAnimationFrame(() => {
         if (ssActive) hlTextEl.classList.add('ss-visible');
       }));
-      hlTimer = setTimeout(cycleHeadline, 4000);
+      cycleTimer = setTimeout(cycle, SS_CYCLE_MS);
     }, 500);
   }
 
@@ -2619,23 +2693,23 @@ window.syncContent = syncContent;
     ssActive = true;
     hlIdx = Math.floor(Math.random() * HEADLINES.length);
     hlTextEl.textContent = HEADLINES[hlIdx];
-    buildBadges();
+    buildBadges(false);
     ssEl.classList.add('ss-active');
     setTimeout(() => {
       if (!ssActive) return;
       hlTextEl.classList.add('ss-visible');
-      hlTimer = setTimeout(cycleHeadline, 4000);
-    }, 400);
+      cycleTimer = setTimeout(cycle, SS_CYCLE_MS);
+    }, 500);
   }
 
   /* ── 해제 ── */
   function dismissScreensaver() {
     if (!ssActive) return;
     ssActive = false;
-    clearTimeout(hlTimer);
+    clearTimeout(cycleTimer);
     hlTextEl.classList.remove('ss-visible');
     ssEl.classList.add('ss-dismissing');
-    setTimeout(() => ssEl.classList.remove('ss-active', 'ss-dismissing'), 1100);
+    setTimeout(() => ssEl.classList.remove('ss-active','ss-dismissing'), 1100);
     resetIdleTimer();
   }
 
@@ -2644,13 +2718,21 @@ window.syncContent = syncContent;
     idleTimer = setTimeout(startScreensaver, SS_IDLE_MS);
   }
 
+  /* ── 5분마다 자동 새로고침 (캐시 무효화) ── */
+  setTimeout(() => {
+    const url = new URL(location.href);
+    url.searchParams.set('_v', Date.now());
+    location.replace(url.toString());
+  }, 5 * 60 * 1000);
+
+  /* ── 활동 감지 ── */
   ['touchmove','mousemove','keydown','scroll'].forEach(evt => {
     document.addEventListener(evt, () => {
       if (ssActive) { dismissScreensaver(); return; }
       resetIdleTimer();
     }, { passive: true });
   });
-  document.addEventListener('touchstart', (e) => {
+  document.addEventListener('touchstart', () => {
     if (ssActive) { dismissScreensaver(); return; }
     resetIdleTimer();
   }, { passive: true });
